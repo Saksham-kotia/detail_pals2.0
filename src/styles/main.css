@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+@import '../design-system/tokens/index.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--dp-bg);
+    color: var(--dp-text);
+    font-family: var(--dp-font-sans);
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* Focus ring — accessible, on-brand */
+  :focus-visible {
+    outline: 1.5px solid var(--dp-gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  :focus:not(:focus-visible) { outline: none; }
+
+  /* Selection */
+  ::selection {
+    background-color: rgba(201,168,76,0.20);
+    color: var(--dp-text);
+  }
+
+  /* Scrollbar — dark, gold thumb */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dp-bg); }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(201,168,76,0.25);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(201,168,76,0.45);
+  }
+}
+
+@layer utilities {
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

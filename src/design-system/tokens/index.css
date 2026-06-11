@@ -1,0 +1,90 @@
+:root {
+  --dp-bg:              #070707;
+  --dp-surface:         #0F0F0F;
+  --dp-surface-2:       #181818;
+  --dp-surface-3:       #222222;
+  --dp-surface-glass:   rgba(15,15,15,0.80);
+
+  --dp-border:          rgba(255,255,255,0.18);
+  --dp-border-hover:    rgba(255,255,255,0.30);
+  --dp-border-gold:     rgba(201,168,76,0.55);
+  --dp-border-gold-dim: rgba(201,168,76,0.30);
+  --dp-border-gold-active: rgba(201,168,76,0.65);
+
+  --dp-gold:            #C9A84C;
+  --dp-gold-light:      #E8C97A;
+  --dp-gold-dim:        rgba(201,168,76,0.12);
+  --dp-gold-glow:       rgba(201,168,76,0.08);
+  --dp-gold-glow-sm:    0 0 12px rgba(201,168,76,0.25),0 0 24px rgba(201,168,76,0.10);
+  --dp-gold-glow-md:    0 0 20px rgba(201,168,76,0.35),0 0 40px rgba(201,168,76,0.15);
+  --dp-gold-glow-lg:    0 0 40px rgba(201,168,76,0.45),0 0 80px rgba(201,168,76,0.20);
+  --dp-gold-text-glow:  0 0 30px rgba(201,168,76,0.40);
+
+  --dp-text:            #F0EDE6;
+  --dp-text-warm:       #EDE8D8;
+  --dp-text-muted:      #9CA3AF;
+  --dp-text-subtle:     #6B7280;
+
+  --dp-font-display:    'Cormorant Garamond',Georgia,serif;
+  --dp-font-sans:       'DM Sans',system-ui,-apple-system,sans-serif;
+
+  --dp-text-hero:       clamp(52px,7.5vw,96px);
+  --dp-text-section:    clamp(36px,4.5vw,60px);
+  --dp-text-xl:         clamp(20px,2.5vw,28px);
+  --dp-text-base:       16px;
+  --dp-text-sm:         15px;
+  --dp-text-xs:         13px;
+
+  --dp-leading-tight:   1.0;
+  --dp-leading-snug:    1.2;
+  --dp-leading-base:    1.72;
+
+  --dp-tracking-hero:   -0.025em;
+  --dp-tracking-display:-0.01em;
+  --dp-tracking-body:   0.01em;
+  --dp-tracking-label:  0.22em;
+  --dp-tracking-nav:    0.08em;
+
+  --dp-nav-h:           72px;
+  --dp-pad-y:           clamp(80px,12vw,160px);
+  --dp-pad-x:           clamp(20px,5vw,80px);
+  --dp-max-w:           1280px;
+  --dp-max-w-text:      640px;
+  --dp-max-w-narrow:    480px;
+
+  --dp-ease-out:        cubic-bezier(0.16,1,0.3,1);
+  --dp-ease-in:         cubic-bezier(0.4,0,1,1);
+  --dp-ease-in-out:     cubic-bezier(0.45,0,0.15,1);
+  --dp-ease-spring:     cubic-bezier(0.34,1.56,0.64,1);
+
+  --dp-dur-fast:        150ms;
+  --dp-dur-base:        300ms;
+  --dp-dur-slow:        600ms;
+  --dp-dur-cinematic:   1100ms;
+  --dp-dur-intro:       3200ms;
+  --dp-dur-scan:        8s;
+
+  --dp-glass-blur:      blur(12px) saturate(140%);
+
+  --dp-radius-none:     0px;
+  --dp-radius-sm:       4px;
+  --dp-radius-md:       8px;
+  --dp-radius-lg:       12px;
+
+  --dp-amber:          #D4841A;
+  --dp-amber-dim:      rgba(212,132,26,0.15);
+  --dp-bronze:         #8B6914;
+  --dp-champagne:      #F0E0B0;
+  --dp-champagne-dim:  rgba(240,224,176,0.08);
+  --dp-chrome:         #C8C8C8;
+  --dp-chrome-dim:     rgba(200,200,200,0.08);
+
+  /* Extended surface — for richer depth layering */
+  --dp-surface-deep:   #060605;
+  --dp-surface-warm:   rgba(20,16,8,0.95);
+
+  /* Richer glow variants */
+  --dp-amber-glow:     0 0 20px rgba(212,132,26,0.25),0 0 40px rgba(212,132,26,0.10);
+  --dp-chrome-glow:    0 0 16px rgba(200,200,200,0.15),0 0 32px rgba(200,200,200,0.06);
+
+}
