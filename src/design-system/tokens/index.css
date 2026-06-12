@@ -87,4 +87,19 @@
   --dp-amber-glow:     0 0 20px rgba(212,132,26,0.25),0 0 40px rgba(212,132,26,0.10);
   --dp-chrome-glow:    0 0 16px rgba(200,200,200,0.15),0 0 32px rgba(200,200,200,0.06);
 
+  /* Shades of Violet and Yellow */
+  --dp-violet:          #7C3AED;
+  --dp-violet-light:    #A78BFA;
+  --dp-violet-dark:     #4C1D95;
+  --dp-violet-glow:     rgba(124, 58, 237, 0.15);
+  --dp-violet-glow-sm:  0 0 12px rgba(124, 58, 237, 0.25),0 0 24px rgba(124, 58, 237, 0.10);
+  --dp-violet-glow-md:  0 0 20px rgba(124, 58, 237, 0.35),0 0 40px rgba(124, 58, 237, 0.15);
+  --dp-violet-glow-lg:  0 0 40px rgba(124, 58, 237, 0.45),0 0 80px rgba(124, 58, 237, 0.20);
+
+  --dp-yellow:          #FBBF24;
+  --dp-yellow-light:    #FDE047;
+  --dp-yellow-dark:     #D97706;
+  --dp-yellow-glow:     rgba(251, 191, 36, 0.12);
+  --dp-yellow-glow-sm:  0 0 12px rgba(251, 191, 36, 0.25),0 0 24px rgba(251, 191, 36, 0.10);
+  --dp-yellow-glow-md:  0 0 20px rgba(251, 191, 36, 0.35),0 0 40px rgba(251, 191, 36, 0.15);
 }

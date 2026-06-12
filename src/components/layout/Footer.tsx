@@ -1,31 +1,34 @@
 /**
- * DETAIL PALS V2 — Enhanced Footer
- * ================================
+ * DETAIL PALS V2 — Enhanced Footer (Single-Page Upgrade)
+ * =====================================================
  * File: src/components/layout/Footer.tsx
  *
- * Visually enhanced premium bottom panel featuring:
- * - Ambient cyan & gold showroom lighting in the background
- * - Subtle technical blueprint intersection vector grid overlay
- * - Increased font size hierarchy for superior readability (text-sm scale)
- * - Polished interactive animations and breathing glow on CTA
+ * Modified to support:
+ * — Smooth scrolling to sections on clicking links
+ * — Dynamic quote/booking anchoring on same page
  */
 
 import { m, LazyMotion, domAnimation } from 'framer-motion'
-import { Link } from 'react-router-dom'
 import { clsx } from 'clsx'
 import { staggerContainer, fadeUp, GoldRule } from '@/design-system'
 
 const FOOTER_EXPLORE = [
-  { label: 'Services',       to: '/services' },
-  { label: 'Get a Quote',     to: '/quote'    },
-  { label: 'Book Online',    to: '/booking'  },
-  { label: 'Before & After', to: '/gallery'  },
-  { label: 'FAQ',            to: '/reviews'  },
+  { label: 'Services',       href: '#services' },
+  { label: 'Get a Quote',     href: '#quote'    },
+  { label: 'Book Online',    href: '#booking'  },
+  { label: 'Before & After', href: '#gallery'  },
+  { label: 'Reviews',        href: '#reviews'  },
 ]
 
 const YEAR = new Date().getFullYear()
 
 export function Footer() {
+  const handleScrollTo = (e: React.MouseEvent, href: string) => {
+    e.preventDefault()
+    // @ts-ignore
+    window.lenis?.scrollTo(href, { offset: -80 })
+  }
+
   return (
     <LazyMotion features={domAnimation}>
       <footer
@@ -82,9 +85,9 @@ export function Footer() {
                 Explore
               </p>
               <ul className="flex flex-col gap-3.5 list-none p-0 m-0">
-                {FOOTER_EXPLORE.map(({ label, to }) => (
+                {FOOTER_EXPLORE.map(({ label, href }) => (
                   <li key={label}>
-                    <FooterLink to={to}>{label}</FooterLink>
+                    <FooterLink href={href}>{label}</FooterLink>
                   </li>
                 ))}
               </ul>
@@ -127,13 +130,14 @@ export function Footer() {
               </p>
               
               {/* Pulsing Pill CTA */}
-              <Link
-                to="/quote"
+              <a
+                href="#quote"
+                onClick={(e) => handleScrollTo(e, '#quote')}
                 className="inline-flex items-center justify-center font-sans font-semibold text-xs tracking-widest uppercase text-dp-bg bg-dp-gold hover:bg-dp-gold-light px-7 py-3.5 rounded-full shadow-gold-sm hover:shadow-gold-md hover:scale-[1.03] active:scale-[0.985] transition-all duration-300 select-none no-underline max-w-max border border-dp-gold animate-glow-breathe cursor-pointer"
                 data-cursor="cta"
               >
                 Get My Quote
-              </Link>
+              </a>
 
               {/* Social Buttons */}
               <div className="flex items-center gap-3.5 mt-2">
@@ -206,10 +210,17 @@ export function Footer() {
   )
 }
 
-function FooterLink({ to, children }: { to: string; children: React.ReactNode }) {
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const handleScroll = (e: React.MouseEvent) => {
+    e.preventDefault()
+    // @ts-ignore
+    window.lenis?.scrollTo(href, { offset: -80 })
+  }
+
   return (
-    <Link
-      to={to}
+    <a
+      href={href}
+      onClick={handleScroll}
       className={clsx(
         'relative font-sans font-light text-sm text-dp-text-muted',
         'hover:text-dp-text no-underline',
@@ -223,6 +234,6 @@ function FooterLink({ to, children }: { to: string; children: React.ReactNode })
         className="absolute bottom-0 left-0 h-px bg-dp-gold w-0 group-hover:w-full transition-[width] duration-300 ease-dp-out"
         aria-hidden="true"
       />
-    </Link>
+    </a>
   )
 }

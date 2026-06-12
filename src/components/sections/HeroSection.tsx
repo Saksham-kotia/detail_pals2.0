@@ -276,11 +276,25 @@ export function HeroSection() {
             initial="hidden" animate="visible"
             variants={heroFadeUp(heroDelays.ctas)}
           >
-            <PrimaryButton to="/quote" data-cursor="cta">
+            <PrimaryButton
+              as="button"
+              onClick={() => {
+                // @ts-ignore
+                window.lenis?.scrollTo('#quote', { offset: -80 })
+              }}
+              data-cursor="cta"
+            >
               Configure your detail
               <ArrowRight />
             </PrimaryButton>
-            <GhostButton to="/gallery" data-cursor="hover">
+            <GhostButton
+              as="button"
+              onClick={() => {
+                // @ts-ignore
+                window.lenis?.scrollTo('#gallery', { offset: -80 })
+              }}
+              data-cursor="hover"
+            >
               See our work
               <m.span className="inline-flex" animate={{ y: [0, 3, 0] }} transition={{ duration: 2, repeat: Infinity }} aria-hidden="true">↓</m.span>
             </GhostButton>
@@ -303,7 +317,10 @@ export function HeroSection() {
           className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[20] flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none p-2"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           transition={{ delay: heroDelays.scroll, duration: 0.6 }}
-          onClick={() => document.getElementById('showroom-blueprint')?.scrollIntoView({ behavior: 'smooth' })}
+          onClick={() => {
+            // @ts-ignore
+            window.lenis?.scrollTo('#services', { offset: -80 })
+          }}
           aria-label="Scroll to explore"
           data-cursor="hover"
         >

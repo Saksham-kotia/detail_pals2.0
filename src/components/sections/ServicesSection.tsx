@@ -21,7 +21,7 @@ interface ServicesSectionProps {
 
 export function ServicesSection({ onSelectTier }: ServicesSectionProps) {
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set())
-  const [addOnsOpen, setAddOnsOpen] = useState(false)
+  const [addOnsOpen, setAddOnsOpen] = useState(true)
 
   const toggleAddOn = useCallback((id: string) => {
     setSelectedAddOns(prev => {
@@ -148,6 +148,45 @@ export function ServicesSection({ onSelectTier }: ServicesSectionProps) {
   )
 }
 
+const getServiceColor = (id: string) => {
+  if (id === 'basic_wash' || id === 'interior_deep') return {
+    border: 'group-hover:border-dp-gold/40',
+    borderActive: 'border-dp-gold',
+    text: 'group-hover:text-dp-gold-light',
+    textActive: 'text-dp-gold',
+    bg: 'bg-dp-gold/10',
+    glow: 'shadow-gold-sm',
+    accentColor: 'var(--dp-gold)',
+    laser: 'linear-gradient(to bottom, transparent, var(--dp-gold) 30%, #ffffff 50%, var(--dp-gold) 70%, transparent)',
+    laserBoxShadow: '0 0 10px var(--dp-gold), 0 0 4px rgba(255,255,255,0.8)',
+    spotlight: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(201,168,76,0.03) 0%, transparent 80%)'
+  }
+  if (id === 'exterior_polish' || id === 'full_detail') return {
+    border: 'group-hover:border-dp-violet/40',
+    borderActive: 'border-dp-violet',
+    text: 'group-hover:text-dp-violet-light',
+    textActive: 'text-dp-violet',
+    bg: 'bg-dp-violet/10',
+    glow: 'shadow-violet-sm',
+    accentColor: 'var(--dp-violet)',
+    laser: 'linear-gradient(to bottom, transparent, var(--dp-violet) 30%, #ffffff 50%, var(--dp-violet) 70%, transparent)',
+    laserBoxShadow: '0 0 10px var(--dp-violet), 0 0 4px rgba(255,255,255,0.8)',
+    spotlight: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(124,58,237,0.03) 0%, transparent 80%)'
+  }
+  return { // ceramic_coating and paint_correction
+    border: 'group-hover:border-dp-yellow/40',
+    borderActive: 'border-dp-yellow',
+    text: 'group-hover:text-dp-yellow-light',
+    textActive: 'text-dp-yellow',
+    bg: 'bg-dp-yellow/10',
+    glow: 'shadow-yellow-sm',
+    accentColor: 'var(--dp-yellow)',
+    laser: 'linear-gradient(to bottom, transparent, var(--dp-yellow) 30%, #ffffff 50%, var(--dp-yellow) 70%, transparent)',
+    laserBoxShadow: '0 0 10px var(--dp-yellow), 0 0 4px rgba(255,255,255,0.8)',
+    spotlight: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(251,191,36,0.02) 0%, transparent 80%)'
+  }
+}
+
 // ─── Service grid card component ─────────────────────────────
 
 interface ServiceGridCardProps {
@@ -158,16 +197,17 @@ interface ServiceGridCardProps {
 
 function ServiceGridCard({ service, index, onSelect }: ServiceGridCardProps) {
   const [hovered, setHovered] = useState(false)
+  const colors = getServiceColor(service.id)
 
   return (
     <TiltCard
-      goldAccent
+      goldAccent={service.id === 'basic_wash' || service.id === 'interior_deep'}
       maxTilt={6}
       glareIntensity={0.16}
       onClick={onSelect}
       className={clsx(
         'group relative border border-dp-border flex flex-col h-full bg-dp-surface/50 backdrop-blur-md transition-all duration-500',
-        hovered ? 'border-[var(--dp-border-gold-dim)] shadow-gold-sm' : ''
+        hovered ? `${colors.border} ${colors.glow}` : ''
       )}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
@@ -188,7 +228,7 @@ function ServiceGridCard({ service, index, onSelect }: ServiceGridCardProps) {
           animate={{ opacity: hovered ? 1 : 0 }}
           transition={{ duration: 0.5 }}
           style={{
-            background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(201,168,76,0.03) 0%, transparent 80%)',
+            background: colors.spotlight,
           }}
           aria-hidden="true"
         />
@@ -197,17 +237,23 @@ function ServiceGridCard({ service, index, onSelect }: ServiceGridCardProps) {
         <div className="flex items-start gap-4 mb-4 z-10">
           <div className={clsx(
             'flex items-center justify-center w-10 h-10 border transition-all duration-500 rounded-none flex-shrink-0',
-            hovered ? 'border-dp-gold text-dp-gold bg-dp-gold/10 shadow-gold-sm' : 'border-dp-border text-dp-text-muted'
+            hovered ? `${colors.borderActive} ${colors.textActive} ${colors.bg} ${colors.glow}` : 'border-dp-border text-dp-text-muted'
           )}>
             <ServiceIcon id={service.id} className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
             {service.badge && (
-              <span className="inline-block mb-1 font-sans font-normal text-[8px] tracking-[0.16em] uppercase text-dp-gold border border-[var(--dp-border-gold-dim)] px-2 py-0.5">
+              <span className={clsx(
+                "inline-block mb-1 font-sans font-normal text-[8px] tracking-[0.16em] uppercase border px-2 py-0.5 transition-colors duration-300",
+                hovered ? `border-transparent bg-${service.id.includes('coat') ? 'dp-yellow' : 'dp-violet'}/20 text-white` : 'text-dp-gold border-[var(--dp-border-gold-dim)]'
+              )}>
                 {service.badge}
               </span>
             )}
-            <h3 className="font-display font-light text-xl leading-snug text-dp-text group-hover:text-dp-gold transition-colors duration-300">
+            <h3 className={clsx(
+              "font-display font-light text-xl leading-snug text-dp-text transition-colors duration-300",
+              hovered ? colors.textActive : ""
+            )}>
               {service.name}
             </h3>
           </div>
@@ -240,14 +286,26 @@ function ServiceGridCard({ service, index, onSelect }: ServiceGridCardProps) {
           <div>
             <span className="font-sans font-light text-[9px] text-dp-text-subtle tracking-wider uppercase block">From</span>
             <div className="flex items-baseline gap-1">
-              <span className="font-sans font-light text-2xl text-dp-text group-hover:text-dp-gold transition-colors duration-300">
+              <span className={clsx(
+                "font-sans font-light text-2xl text-dp-text transition-colors duration-300",
+                hovered ? colors.textActive : ""
+              )}>
                 ${service.price}
               </span>
               <span className="font-sans font-light text-[10px] text-dp-text-subtle">/{service.duration.replace(' hours', 'h').replace(' hour', 'h')}</span>
             </div>
           </div>
 
-          <PrimaryButton to={`/quote?tier=${service.id}`} className="text-[10px] py-2 px-4 flex items-center gap-1.5" data-cursor="cta">
+          <PrimaryButton
+            as="button"
+            onClick={() => {
+              onSelect()
+              // @ts-ignore
+              window.lenis?.scrollTo('#booking', { offset: -80 })
+            }}
+            className="text-[10px] py-2 px-4 flex items-center gap-1.5"
+            data-cursor="cta"
+          >
             Book
             <ArrowRight className="w-3 h-3" />
           </PrimaryButton>
@@ -329,6 +387,7 @@ const TIER_IMAGES: Record<string, string> = {
 
 function TierGridVisualPanel({ id, hovered }: { id: ServiceTier; hovered: boolean }) {
   const imgSrc = TIER_IMAGES[id] || '/porsche_polished.png'
+  const colors = getServiceColor(id)
 
   return (
     <div className="w-full h-full relative overflow-hidden select-none pointer-events-none">
@@ -369,13 +428,6 @@ function TierGridVisualPanel({ id, hovered }: { id: ServiceTier; hovered: boolea
             </g>
           ))}
 
-          {/* Swirl scratches arcs */}
-          <circle cx="120" cy="50" r="25" stroke="rgba(255,255,255,0.14)" strokeWidth="0.6" strokeDasharray="6, 3" />
-          <circle cx="120" cy="50" r="45" stroke="rgba(255,255,255,0.12)" strokeWidth="0.6" strokeDasharray="8, 4" />
-          <circle cx="120" cy="50" r="70" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" strokeDasharray="10, 5" />
-          
-          <circle cx="40" cy="30" r="20" stroke="rgba(255,255,255,0.14)" strokeWidth="0.6" strokeDasharray="4, 3" />
-          <circle cx="40" cy="30" r="35" stroke="rgba(255,255,255,0.10)" strokeWidth="0.5" strokeDasharray="6, 4" />
         </svg>
       </div>
 
@@ -389,10 +441,10 @@ function TierGridVisualPanel({ id, hovered }: { id: ServiceTier; hovered: boolea
           alt="After Detail"
           className="w-full h-full object-cover"
         />
-        {/* Specular Caustic / Gold Glow overlay */}
+        {/* Specular Caustic / Glow overlay */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-dp-gold/10 to-transparent" />
         <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(circle 100px at 60% 40%, rgba(201,168,76,0.16) 0%, transparent 80%)'
+          background: `radial-gradient(circle 100px at 60% 40%, ${colors.accentColor}18 0%, transparent 80%)`
         }} />
       </div>
 
@@ -402,8 +454,8 @@ function TierGridVisualPanel({ id, hovered }: { id: ServiceTier; hovered: boolea
         style={{
           left: hovered ? '100%' : '0%',
           opacity: hovered ? 1 : 0,
-          background: 'linear-gradient(to bottom, transparent, #00D2FF 30%, #ffffff 50%, #00D2FF 70%, transparent)',
-          boxShadow: '0 0 10px #00D2FF, 0 0 4px rgba(255,255,255,0.8)',
+          background: colors.laser,
+          boxShadow: colors.laserBoxShadow,
         }}
       />
       

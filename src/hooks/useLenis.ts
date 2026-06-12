@@ -34,6 +34,7 @@ export function useLenis() {
     })
 
     lenisRef.current = lenis
+    ;(window as any).lenis = lenis
 
     // RAF loop
     let rafId: number
@@ -47,6 +48,7 @@ export function useLenis() {
       cancelAnimationFrame(rafId)
       lenis.destroy()
       lenisRef.current = null
+      ;(window as any).lenis = null
     }
   }, [])
 

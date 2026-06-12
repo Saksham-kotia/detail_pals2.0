@@ -31,10 +31,14 @@ export function CarSilhouette({
   className,
   opacity = 1,
   colorTheme = 'amber',
+  blueprint = false,
+  activeColor = 'var(--dp-gold)',
 }: {
   className?: string
   opacity?: number
   colorTheme?: 'amber' | 'blue' | 'champagne' | 'chrome' | 'obsidian'
+  blueprint?: boolean
+  activeColor?: string
 }) {
   const theme = {
     amber: {
@@ -124,13 +128,16 @@ export function CarSilhouette({
       </defs>
 
       {/* ── Floor reflection ── */}
-      <ellipse cx="450" cy="395" rx="340" ry="18" fill="url(#floor-reflect)" />
+      {!blueprint && <ellipse cx="450" cy="395" rx="340" ry="18" fill="url(#floor-reflect)" />}
 
       {/* ── Main body ── */}
       {/* Underbody / sill */}
       <path
         d="M 120 310 L 780 310 L 780 330 Q 760 345 700 348 L 580 350 L 320 350 Q 260 350 200 345 L 140 338 Z"
-        fill="url(#car-body)"
+        fill={blueprint ? "none" : "url(#car-body)"}
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1.2 : 0}
+        strokeOpacity={blueprint ? 0.35 : 0}
       />
 
       {/* Body side — the main panel */}
@@ -148,7 +155,10 @@ export function CarSilhouette({
            L 800 310
            L 120 310
            Z"
-        fill="url(#car-body)"
+        fill={blueprint ? "none" : "url(#car-body)"}
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1.2 : 0}
+        strokeOpacity={blueprint ? 0.45 : 0}
       />
 
       {/* Roof */}
@@ -164,33 +174,39 @@ export function CarSilhouette({
            Q 560 162 480 168
            L 370 175
            Q 320 185 280 200Z"
-        fill="url(#car-body)"
+        fill={blueprint ? "none" : "url(#car-body)"}
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1.2 : 0}
+        strokeOpacity={blueprint ? 0.4 : 0}
       />
 
       {/* Roof light gloss */}
-      <path
-        d="M 310 192
-           Q 330 160 365 140
-           L 430 126
-           Q 480 116 535 118
-           L 590 126
-           Q 630 136 655 152
-           L 680 170
-           Q 640 138 590 128
-           L 535 122
-           Q 478 118 428 128
-           L 365 144
-           Q 330 162 310 192Z"
-        fill="url(#car-roof)"
-      />
+      {!blueprint && (
+        <path
+          d="M 310 192
+             Q 330 160 365 140
+             L 430 126
+             Q 480 116 535 118
+             L 590 126
+             Q 630 136 655 152
+             L 680 170
+             Q 640 138 590 128
+             L 535 122
+             Q 478 118 428 128
+             L 365 144
+             Q 330 162 310 192Z"
+          fill="url(#car-roof)"
+        />
+      )}
 
       {/* Body character line — the raised ridge that catches light */}
       <path
         d="M 145 265 Q 300 255 450 252 Q 600 250 760 258"
-        stroke="url(#body-edge)"
-        strokeWidth="1.5"
+        stroke={blueprint ? activeColor : "url(#body-edge)"}
+        strokeWidth="1.2"
         fill="none"
         strokeLinecap="round"
+        strokeOpacity={blueprint ? 0.6 : 1}
       />
 
       {/* Front window */}
@@ -201,8 +217,10 @@ export function CarSilhouette({
            L 460 172
            Q 420 170 390 175
            Z"
-        fill="url(#window-reflect)"
-        opacity="0.8"
+        fill={blueprint ? "none" : "url(#window-reflect)"}
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1 : 0}
+        strokeOpacity={blueprint ? 0.35 : 0.8}
       />
 
       {/* Rear window */}
@@ -214,37 +232,52 @@ export function CarSilhouette({
            L 640 178
            Q 610 170 570 170
            Z"
-        fill="url(#window-reflect)"
-        opacity="0.6"
+        fill={blueprint ? "none" : "url(#window-reflect)"}
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1 : 0}
+        strokeOpacity={blueprint ? 0.3 : 0.6}
       />
 
       {/* B-pillar */}
-      <rect x="518" y="118" width="22" height="58" fill="#0A0907" opacity="0.95" />
+      <rect 
+        x="518" y="118" width="22" height="58" 
+        fill={blueprint ? "none" : "#0A0907"} 
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1 : 0}
+        strokeOpacity={blueprint ? 0.3 : 0.95} 
+      />
 
       {/* Windshield glare — top edge catches the studio light */}
-      <path
-        d="M 355 174 Q 395 132 460 115 L 465 118 Q 400 136 360 176 Z"
-        fill="#E8C97A"
-        opacity="0.08"
-      />
+      {!blueprint && (
+        <path
+          d="M 355 174 Q 395 132 460 115 L 465 118 Q 400 136 360 176 Z"
+          fill="#E8C97A"
+          opacity="0.08"
+        />
+      )}
 
       {/* Front wheel arch */}
       <path
         d="M 175 310 Q 175 248 240 248 Q 305 248 305 310 Z"
-        fill="#0A0907"
+        fill={blueprint ? "none" : "#0A0907"}
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1.2 : 0}
+        strokeOpacity={blueprint ? 0.4 : 0}
       />
       {/* Rear wheel arch */}
       <path
         d="M 590 310 Q 590 248 655 248 Q 720 248 720 310 Z"
-        fill="#0A0907"
+        fill={blueprint ? "none" : "#0A0907"}
+        stroke={blueprint ? activeColor : "none"}
+        strokeWidth={blueprint ? 1.2 : 0}
+        strokeOpacity={blueprint ? 0.4 : 0}
       />
 
       {/* Front wheel */}
-      <circle cx="240" cy="325" r="52" fill="url(#wheel-grad)" />
-      <circle cx="240" cy="325" r="52" stroke="#2A2218" strokeWidth="2" fill="none" />
+      <circle cx="240" cy="325" r="52" fill={blueprint ? "none" : "url(#wheel-grad)"} stroke={blueprint ? activeColor : "#2A2218"} strokeWidth={blueprint ? 1.2 : 2} />
       {/* Wheel rim detail */}
-      <circle cx="240" cy="325" r="26" fill="none" stroke="#3A3028" strokeWidth="8" />
-      <circle cx="240" cy="325" r="14" fill="#1A1610" />
+      <circle cx="240" cy="325" r="26" fill="none" stroke={blueprint ? activeColor : "#3A3028"} strokeWidth={blueprint ? 1 : 8} strokeOpacity={blueprint ? 0.5 : 1} />
+      <circle cx="240" cy="325" r="14" fill={blueprint ? "none" : "#1A1610"} stroke={blueprint ? activeColor : "none"} strokeWidth={blueprint ? 1 : 0} strokeOpacity={blueprint ? 0.4 : 0} />
       {/* Spokes */}
       {[0,60,120,180,240,300].map(angle => (
         <line key={angle}
@@ -252,45 +285,46 @@ export function CarSilhouette({
           y1={325 + 14 * Math.sin(angle * Math.PI/180)}
           x2={240 + 35 * Math.cos(angle * Math.PI/180)}
           y2={325 + 35 * Math.sin(angle * Math.PI/180)}
-          stroke="#4A4030"
-          strokeWidth="3"
+          stroke={blueprint ? activeColor : "#4A4030"}
+          strokeWidth={blueprint ? 1 : 3}
           strokeLinecap="round"
+          strokeOpacity={blueprint ? 0.5 : 1}
         />
       ))}
       {/* Wheel highlight */}
-      <ellipse cx="228" cy="312" rx="16" ry="10" fill="#C9A84C" opacity="0.08" transform="rotate(-25 228 312)" />
+      {!blueprint && <ellipse cx="228" cy="312" rx="16" ry="10" fill="#C9A84C" opacity="0.08" transform="rotate(-25 228 312)" />}
 
       {/* Rear wheel */}
-      <circle cx="655" cy="325" r="52" fill="url(#wheel-grad)" />
-      <circle cx="655" cy="325" r="52" stroke="#2A2218" strokeWidth="2" fill="none" />
-      <circle cx="655" cy="325" r="26" fill="none" stroke="#3A3028" strokeWidth="8" />
-      <circle cx="655" cy="325" r="14" fill="#1A1610" />
+      <circle cx="655" cy="325" r="52" fill={blueprint ? "none" : "url(#wheel-grad)"} stroke={blueprint ? activeColor : "#2A2218"} strokeWidth={blueprint ? 1.2 : 2} />
+      <circle cx="655" cy="325" r="26" fill="none" stroke={blueprint ? activeColor : "#3A3028"} strokeWidth={blueprint ? 1 : 8} strokeOpacity={blueprint ? 0.5 : 1} />
+      <circle cx="655" cy="325" r="14" fill={blueprint ? "none" : "#1A1610"} stroke={blueprint ? activeColor : "none"} strokeWidth={blueprint ? 1 : 0} strokeOpacity={blueprint ? 0.4 : 0} />
       {[0,60,120,180,240,300].map(angle => (
         <line key={angle}
           x1={655 + 14 * Math.cos(angle * Math.PI/180)}
           y1={325 + 14 * Math.sin(angle * Math.PI/180)}
           x2={655 + 35 * Math.cos(angle * Math.PI/180)}
           y2={325 + 35 * Math.sin(angle * Math.PI/180)}
-          stroke="#4A4030"
-          strokeWidth="3"
+          stroke={blueprint ? activeColor : "#4A4030"}
+          strokeWidth={blueprint ? 1 : 3}
           strokeLinecap="round"
+          strokeOpacity={blueprint ? 0.5 : 1}
         />
       ))}
-      <ellipse cx="643" cy="312" rx="16" ry="10" fill="#C9A84C" opacity="0.07" transform="rotate(-25 643 312)" />
+      {!blueprint && <ellipse cx="643" cy="312" rx="16" ry="10" fill="#C9A84C" opacity="0.07" transform="rotate(-25 643 312)" />}
 
       {/* Headlight cluster */}
-      <path d="M 790 235 L 805 248 L 805 270 L 790 278 Q 798 260 790 248 Z" fill="#1A1610" />
-      <path d="M 792 250 L 800 255 L 800 265 L 792 268 Z" fill="#C9A84C" opacity="0.4" />
+      <path d="M 790 235 L 805 248 L 805 270 L 790 278 Q 798 260 790 248 Z" fill={blueprint ? "none" : "#1A1610"} stroke={blueprint ? activeColor : "none"} strokeWidth={blueprint ? 1 : 0} strokeOpacity={blueprint ? 0.3 : 1} />
+      {!blueprint && <path d="M 792 250 L 800 255 L 800 265 L 792 268 Z" fill="#C9A84C" opacity="0.4" />}
 
       {/* Grille */}
-      <path d="M 802 248 L 808 255 L 808 268 L 802 272 Z" fill="#0D0B08" />
-      {[255,259,263,267].map(y => (
+      <path d="M 802 248 L 808 255 L 808 268 L 802 272 Z" fill={blueprint ? "none" : "#0D0B08"} stroke={blueprint ? activeColor : "none"} strokeWidth={blueprint ? 1 : 0} strokeOpacity={blueprint ? 0.3 : 1} />
+      {!blueprint && [255,259,263,267].map(y => (
         <line key={y} x1="802" y1={y} x2="808" y2={y} stroke="#2A2218" strokeWidth="0.8" />
       ))}
 
       {/* Tail light */}
-      <path d="M 112 240 L 124 238 L 124 260 L 112 265 Z" fill="#1A1610" />
-      <path d="M 113 244 L 122 242 L 122 258 L 113 262 Z" fill="#8B2020" opacity="0.5" />
+      <path d="M 112 240 L 124 238 L 124 260 L 112 265 Z" fill={blueprint ? "none" : "#1A1610"} stroke={blueprint ? activeColor : "none"} strokeWidth={blueprint ? 1 : 0} strokeOpacity={blueprint ? 0.3 : 1} />
+      {!blueprint && <path d="M 113 244 L 122 242 L 122 258 L 113 262 Z" fill="#8B2020" opacity="0.5" />}
     </svg>
   )
 }

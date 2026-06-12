@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { m, LazyMotion, domAnimation, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import {
-  staggerContainer, fadeUp, springs,
+  staggerContainer, fadeUp,
   Section, SectionInner, Eyebrow, SectionHeadline
 } from '@/design-system'
 import { TESTIMONIALS } from '@/data'
@@ -45,7 +45,7 @@ export function TestimonialsSection() {
   // Slide animation variants
   const slideVariants = {
     enter: (dir: number) => ({
-      x: dir > 0 ? 150 : -150,
+      x: dir > 0 ? 80 : -80,
       opacity: 0,
     }),
     center: {
@@ -53,7 +53,7 @@ export function TestimonialsSection() {
       opacity: 1,
     },
     exit: (dir: number) => ({
-      x: dir > 0 ? -150 : 150,
+      x: dir > 0 ? -80 : 80,
       opacity: 0,
     }),
   }
@@ -62,246 +62,219 @@ export function TestimonialsSection() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <Section id="testimonials" className="bg-dp-surface">
+      <Section id="testimonials" className="bg-dp-surface relative overflow-hidden">
+        
+        {/* Subtle Ambient Showroom Spotlights */}
+        <div 
+          className="absolute top-10 left-10 w-96 h-96 rounded-full opacity-20 blur-[120px] pointer-events-none" 
+          style={{ background: 'radial-gradient(circle, var(--dp-violet) 0%, transparent 70%)' }}
+          aria-hidden="true"
+        />
+        <div 
+          className="absolute bottom-10 right-10 w-96 h-96 rounded-full opacity-15 blur-[120px] pointer-events-none" 
+          style={{ background: 'radial-gradient(circle, var(--dp-yellow) 0%, transparent 70%)' }}
+          aria-hidden="true"
+        />
+
         <SectionInner>
-
-          {/* Section Header */}
-          <m.div
-            className="mb-14 text-center"
-            variants={staggerContainer(0.08)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-80px' }}
-          >
-            <m.div variants={fadeUp} className="justify-center flex">
-              <Eyebrow className="mb-5">Testimonials</Eyebrow>
-            </m.div>
-            <m.div variants={fadeUp}>
-              <SectionHeadline>
-                Pals for <em>Life</em>
-              </SectionHeadline>
-            </m.div>
-          </m.div>
-
-          {/* 1. Interactive Testimonial Carousel */}
-          <div
-            className="relative border border-dp-border bg-dp-bg/60 backdrop-blur-md p-8 md:p-14 mb-16 overflow-hidden flex flex-col items-center justify-center text-center"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {/* Ambient champagne glow */}
-            <div
-              className="absolute top-0 right-0 w-80 h-80 pointer-events-none opacity-40"
-              style={{
-                background: 'radial-gradient(ellipse at top right, rgba(201,168,76,0.06) 0%, transparent 70%)',
-              }}
-              aria-hidden="true"
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
             
-            {/* Double quote watermark */}
-            <span
-              className="absolute top-4 left-6 font-display font-light text-[140px] leading-none text-dp-gold pointer-events-none select-none opacity-[0.05]"
-              aria-hidden="true"
+            {/* 1. Left Column: Stats & Platform Aggregates */}
+            <m.div
+              className="lg:col-span-1 space-y-8 relative z-10"
+              variants={staggerContainer(0.08)}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-80px' }}
             >
-              “
-            </span>
+              <div>
+                <m.div variants={fadeUp} className="flex">
+                  <Eyebrow className="mb-4 text-dp-violet-light">Testimonials</Eyebrow>
+                </m.div>
+                <m.div variants={fadeUp}>
+                  <SectionHeadline className="text-left">
+                    Pals for <em>Life</em>
+                  </SectionHeadline>
+                </m.div>
+              </div>
 
-            {/* Carousel Core */}
-            <div className="relative min-h-[160px] md:min-h-[120px] w-full max-w-[800px] flex items-center justify-center">
-              <AnimatePresence initial={false} custom={direction} mode="wait">
-                <m.blockquote
-                  key={currentTestimonial.id}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full flex flex-col items-center"
+              {/* Total Aggregate Score Card */}
+              <m.div 
+                variants={fadeUp}
+                className="p-6 border border-dp-border bg-dp-bg/40 backdrop-blur-md relative overflow-hidden group hover:border-dp-violet/40 transition-colors duration-500"
+              >
+                {/* Glow bar */}
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-dp-violet via-dp-gold to-dp-yellow opacity-70" />
+                
+                <div className="flex items-center gap-5">
+                  <span 
+                    className="font-display font-light text-5xl leading-none text-transparent bg-clip-text bg-gradient-to-r from-dp-yellow via-dp-gold to-dp-yellow-light drop-shadow-yellow-md select-none"
+                    style={{ textShadow: '0 0 16px rgba(251,191,36,0.3)' }}
+                  >
+                    4.9
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-[2px] text-xs text-dp-yellow">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span key={i}>★</span>
+                      ))}
+                    </div>
+                    <span className="font-sans font-light text-xs text-dp-text-muted mt-1 block">
+                      Average rating based on 290+ reviews
+                    </span>
+                  </div>
+                </div>
+              </m.div>
+
+              {/* Platform Trust Badges (Stacked) */}
+              <m.div variants={fadeUp} className="flex flex-col gap-3">
+                {PLATFORMS.map(p => (
+                  <div 
+                    key={p.name}
+                    className="flex justify-between items-center p-3 border border-dp-border/60 hover:border-dp-violet/60 bg-dp-bg/30 backdrop-blur-sm transition-all duration-300 group hover:shadow-violet-sm"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-sans font-normal text-[9px] tracking-widest text-dp-text-muted uppercase group-hover:text-dp-violet-light transition-colors duration-300">
+                        {p.name}
+                      </span>
+                      <span className="font-sans font-light text-[10px] text-dp-text-subtle mt-0.5">
+                        {p.count} verified reviews
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-dp-surface/80 px-2.5 py-1 border border-dp-border group-hover:border-dp-yellow/50 transition-colors duration-300">
+                      <span className="text-xs font-normal text-dp-text group-hover:text-dp-yellow-light transition-colors duration-300">
+                        {p.rating}
+                      </span>
+                      <span className="text-dp-yellow text-[10px]">★</span>
+                    </div>
+                  </div>
+                ))}
+              </m.div>
+            </m.div>
+
+            {/* 2. Right Column: Testimonial Carousel */}
+            <div className="lg:col-span-2 relative z-10">
+              <div
+                className="relative border border-dp-border bg-dp-bg/60 backdrop-blur-md p-8 md:p-12 overflow-hidden flex flex-col justify-between min-h-[350px] md:min-h-[310px] shadow-violet-sm"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+              >
+                {/* Ambient spot overlays inside card */}
+                <div
+                  className="absolute top-0 right-0 w-64 h-64 pointer-events-none opacity-40"
+                  style={{
+                    background: 'radial-gradient(ellipse at top right, rgba(124,58,237,0.05) 0%, transparent 70%)',
+                  }}
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute bottom-0 left-0 w-64 h-64 pointer-events-none opacity-40"
+                  style={{
+                    background: 'radial-gradient(ellipse at bottom left, rgba(251,191,36,0.04) 0%, transparent 70%)',
+                  }}
+                  aria-hidden="true"
+                />
+                
+                {/* Double quote watermark */}
+                <span
+                  className="absolute top-2 left-5 font-display font-light text-[130px] leading-none text-dp-violet pointer-events-none select-none opacity-[0.05]"
+                  aria-hidden="true"
                 >
-                  {/* Rating Stars */}
-                  <div className="flex items-center gap-[3px] text-xs text-dp-gold mb-5">
-                    {Array.from({ length: currentTestimonial.rating }).map((_, i) => (
-                      <span key={i} className="animate-glow-breathe">★</span>
+                  “
+                </span>
+
+                {/* Carousel Core */}
+                <div className="relative w-full flex-grow flex items-center">
+                  <AnimatePresence initial={false} custom={direction} mode="wait">
+                    <m.blockquote
+                      key={currentTestimonial.id}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      className="w-full flex flex-col justify-between h-full"
+                    >
+                      <div>
+                        {/* Rating Stars */}
+                        <div className="flex items-center gap-[3px] text-xs text-dp-yellow mb-5">
+                          {Array.from({ length: currentTestimonial.rating }).map((_, i) => (
+                            <span key={i} className="animate-glow-breathe drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]">★</span>
+                          ))}
+                        </div>
+
+                        {/* Quote text */}
+                        <p className="font-sans font-light text-base md:text-[17px] italic leading-[1.78] text-dp-text-warm">
+                          "{currentTestimonial.quote}"
+                        </p>
+                      </div>
+
+                      {/* Author */}
+                      <footer className="mt-8 border-t border-dp-border/40 pt-4 flex items-baseline justify-between">
+                        <div>
+                          <cite className="not-italic font-sans font-normal text-xs text-dp-yellow tracking-widest uppercase">
+                            {currentTestimonial.author}
+                          </cite>
+                          <span className="text-dp-text-muted text-xs font-light ml-2">
+                            — {currentTestimonial.vehicle}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-dp-text-subtle font-light uppercase tracking-wider hidden sm:inline-block">
+                          {currentTestimonial.date}
+                        </span>
+                      </footer>
+                    </m.blockquote>
+                  </AnimatePresence>
+                </div>
+
+                {/* Navigation and Indicators Block */}
+                <div className="flex items-center gap-6 mt-8 border-t border-dp-border/40 pt-5 justify-between">
+                  {/* Previous button */}
+                  <button
+                    onClick={handlePrev}
+                    className="w-10 h-10 border border-dp-border hover:border-dp-violet flex items-center justify-center text-dp-text hover:text-dp-violet-light bg-transparent transition-all duration-300 rounded-none cursor-pointer hover:shadow-violet-sm"
+                    aria-label="Previous testimonial"
+                    data-cursor="hover"
+                  >
+                    ←
+                  </button>
+
+                  {/* Indicator dots */}
+                  <div className="flex items-center gap-2">
+                    {TESTIMONIALS.map((t, idx) => (
+                      <button
+                        key={t.id}
+                        onClick={() => {
+                          setDirection(idx > index ? 1 : -1)
+                          setIndex(idx)
+                        }}
+                        className={clsx(
+                          'h-1 rounded-full transition-all duration-500 bg-dp-violet',
+                          idx === index ? 'w-6 bg-gradient-to-r from-dp-violet to-dp-yellow opacity-100' : 'w-1 opacity-20 hover:opacity-50'
+                        )}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
                     ))}
                   </div>
 
-                  {/* Quote text */}
-                  <p className="font-sans font-light text-base md:text-lg italic leading-[1.72] text-dp-text-warm max-w-[700px] mb-6">
-                    "{currentTestimonial.quote}"
-                  </p>
-
-                  {/* Author */}
-                  <footer className="mt-2 text-center">
-                    <cite className="not-italic font-sans font-normal text-xs text-dp-gold tracking-widest uppercase">
-                      {currentTestimonial.author}
-                    </cite>
-                    <span className="text-dp-text-muted text-xs font-light ml-2">
-                      — {currentTestimonial.vehicle}
-                    </span>
-                  </footer>
-                </m.blockquote>
-              </AnimatePresence>
-            </div>
-
-            {/* Navigation and Indicators Block */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 mt-10 w-full max-w-[800px] justify-between border-t border-dp-border/60 pt-6">
-              {/* Previous button */}
-              <button
-                onClick={handlePrev}
-                className="w-10 h-10 border border-dp-border hover:border-dp-gold flex items-center justify-center text-dp-text hover:text-dp-gold bg-transparent transition-all duration-300 rounded-none cursor-pointer"
-                aria-label="Previous testimonial"
-                data-cursor="hover"
-              >
-                ←
-              </button>
-
-              {/* Indicator dots & pills */}
-              <div className="flex items-center gap-2">
-                {TESTIMONIALS.map((t, idx) => (
+                  {/* Next button */}
                   <button
-                    key={t.id}
-                    onClick={() => {
-                      setDirection(idx > index ? 1 : -1)
-                      setIndex(idx)
-                    }}
-                    className={clsx(
-                      'h-1.5 rounded-full transition-all duration-500 bg-dp-gold',
-                      idx === index ? 'w-6 opacity-100' : 'w-1.5 opacity-30 hover:opacity-60'
-                    )}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Next button */}
-              <button
-                onClick={handleNext}
-                className="w-10 h-10 border border-dp-border hover:border-dp-gold flex items-center justify-center text-dp-text hover:text-dp-gold bg-transparent transition-all duration-300 rounded-none cursor-pointer"
-                aria-label="Next testimonial"
-                data-cursor="hover"
-              >
-                →
-              </button>
-            </div>
-          </div>
-
-          {/* 2. Platform Trust Score Badges */}
-          <m.div
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-16"
-            variants={staggerContainer(0.08)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-          >
-            {PLATFORMS.map(p => (
-              <m.div
-                key={p.name}
-                variants={fadeUp}
-                className="border border-[var(--dp-border-gold-dim)] bg-dp-bg/40 p-4 flex flex-col justify-center items-center text-center backdrop-blur-sm relative group overflow-hidden"
-              >
-                {/* Micro amber reflect glow */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-dp-gold/2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <span className="font-sans font-normal text-[9px] tracking-widest text-dp-gold uppercase mb-1">
-                  {p.name}
-                </span>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-sans font-light text-2xl text-dp-text">{p.rating}</span>
-                  <span className="text-dp-gold text-sm">★</span>
-                  <span className="font-sans font-light text-[10px] text-dp-text-muted">({p.count} reviews)</span>
+                    onClick={handleNext}
+                    className="w-10 h-10 border border-dp-border hover:border-dp-violet flex items-center justify-center text-dp-text hover:text-dp-violet-light bg-transparent transition-all duration-300 rounded-none cursor-pointer hover:shadow-violet-sm"
+                    aria-label="Next testimonial"
+                    data-cursor="hover"
+                  >
+                    →
+                  </button>
                 </div>
-              </m.div>
-            ))}
-          </m.div>
 
-          {/* 3. Wall of Proof Grid */}
-          <m.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            variants={staggerContainer(0.06)}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-          >
-            {TESTIMONIALS.map(t => (
-              <m.div key={t.id} variants={fadeUp}>
-                <TestimonialCard t={t} />
-              </m.div>
-            ))}
-          </m.div>
+              </div>
+            </div>
 
+          </div>
         </SectionInner>
       </Section>
     </LazyMotion>
-  )
-}
-
-// ─── Small grid testimonial card component ───────────────────
-
-function TestimonialCard({ t }: { t: typeof TESTIMONIALS[number] }) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <div
-      className={clsx(
-        'group relative border border-dp-border bg-dp-surface/40 p-6 flex flex-col justify-between h-full transition-all duration-500',
-        hovered ? 'border-[var(--dp-border-gold-dim)] bg-dp-surface-2/60 scale-[1.02]' : ''
-      )}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Gold thread - hover sweep line */}
-      <m.div
-        className="absolute top-0 left-0 h-px bg-dp-gold z-10"
-        animate={{ width: hovered ? '100%' : '0%' }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        style={{ boxShadow: '0 0 6px rgba(201,168,76,0.4)' }}
-        aria-hidden="true"
-      />
-
-      {/* Floating subtle ambient light spot inside card */}
-      <m.div
-        className="absolute inset-0 pointer-events-none"
-        animate={{ opacity: hovered ? 1 : 0 }}
-        transition={{ duration: 0.4 }}
-        style={{
-          background: 'radial-gradient(circle at 10% 20%, rgba(201,168,76,0.02) 0%, transparent 60%)',
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="space-y-4">
-        {/* Quote mark drop */}
-        <span
-          className="font-display font-light text-4xl leading-none text-dp-gold block opacity-20"
-          aria-hidden="true"
-        >
-          “
-        </span>
-        <blockquote className="relative z-10">
-          <p className="font-sans font-light text-xs md:text-sm leading-[1.65] text-dp-text-muted">
-            "{t.quote}"
-          </p>
-        </blockquote>
-      </div>
-
-      <footer className="border-t border-dp-border/60 pt-4 mt-6 flex items-end justify-between gap-4">
-        <div>
-          <cite className="not-italic font-sans font-normal text-xs text-dp-text block">
-            {t.author}
-          </cite>
-          <p className="font-sans italic font-light text-[10px] text-dp-text-muted mt-0.5">
-            {t.vehicle}
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-[2px] text-[8px] text-dp-gold" aria-label="5 stars">
-            {Array.from({ length: t.rating }).map((_, i) => (
-              <span key={i}>★</span>
-            ))}
-          </div>
-          <span className="text-[9px] text-dp-text-subtle font-light">{t.date}</span>
-        </div>
-      </footer>
-    </div>
   )
 }

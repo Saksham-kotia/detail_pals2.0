@@ -29,6 +29,12 @@ export default {
           'border-gold':  'var(--dp-border-gold)',
           'border-gold-dim': 'var(--dp-border-gold-dim)',
           'border-gold-active': 'var(--dp-border-gold-active)',
+          violet:         'var(--dp-violet)',
+          'violet-light': 'var(--dp-violet-light)',
+          'violet-dark':  'var(--dp-violet-dark)',
+          yellow:         'var(--dp-yellow)',
+          'yellow-light': 'var(--dp-yellow-light)',
+          'yellow-dark':  'var(--dp-yellow-dark)',
         },
       },
       fontFamily: {
@@ -69,6 +75,11 @@ export default {
         'gold-lg': '0 0 40px rgba(201,168,76,0.45),0 0 80px rgba(201,168,76,0.20)',
         'amber-md': '0 0 20px rgba(212,132,26,0.25),0 0 40px rgba(212,132,26,0.10)',
         'chrome-md': '0 0 16px rgba(200,200,200,0.15),0 0 32px rgba(200,200,200,0.06)',
+        'violet-sm': 'var(--dp-violet-glow-sm)',
+        'violet-md': 'var(--dp-violet-glow-md)',
+        'violet-lg': 'var(--dp-violet-glow-lg)',
+        'yellow-sm': 'var(--dp-yellow-glow-sm)',
+        'yellow-md': 'var(--dp-yellow-glow-md)',
       },
       keyframes: {
         'particle-drift': {

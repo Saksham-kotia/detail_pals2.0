@@ -24,13 +24,6 @@ import { PageTransitionOverlay }  from './components/ui/PageTransitionOverlay'
 import { useLenis }               from './hooks'
 
 import { HomePage }     from './pages/HomePage'
-import { ServicesPage } from './pages/ServicesPage'
-import { GalleryPage }  from './pages/GalleryPage'
-import { QuotePage }    from './pages/QuotePage'
-import { ReviewsPage }  from './pages/ReviewsPage'
-import { AboutPage }    from './pages/AboutPage'
-import { BookingPage }  from './pages/BookingPage'
-import { ContactPage }  from './pages/ContactPage'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -38,13 +31,13 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/"         element={<HomePage />}     />
-        <Route path="/services" element={<ServicesPage />} />
-        <Route path="/gallery"  element={<GalleryPage />}  />
-        <Route path="/quote"    element={<QuotePage />}    />
-        <Route path="/reviews"  element={<ReviewsPage />}  />
-        <Route path="/about"    element={<AboutPage />}    />
-        <Route path="/booking"  element={<BookingPage />}  />
-        <Route path="/contact"  element={<ContactPage />}  />
+        <Route path="/services" element={<HomePage />}     />
+        <Route path="/gallery"  element={<HomePage />}     />
+        <Route path="/quote"    element={<HomePage />}     />
+        <Route path="/reviews"  element={<HomePage />}     />
+        <Route path="/about"    element={<HomePage />}     />
+        <Route path="/booking"  element={<HomePage />}     />
+        <Route path="/contact"  element={<HomePage />}     />
         <Route path="*"         element={<HomePage />}     />
       </Routes>
     </AnimatePresence>

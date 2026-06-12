@@ -1,23 +1,16 @@
 /**
- * DETAIL PALS V2 — Process Section
- * =====================================
+ * DETAIL PALS V2 — Process Section (Refactored Single-Row Layout)
+ * ===============================================================
  * File: src/components/sections/ProcessSection.tsx
  *
- * Narrative position: between Gallery (proof) and Testimonials (trust).
- * Job: explain WHY professional detailing is worth the investment.
- * Answer: because of the craft and methodology behind the result.
- *
- * Layout: alternating left/right rows — each process stage occupies its own
- * full-width horizontal moment. The visual cadence prevents the
- * "long list of features" pattern that commoditises the service.
- *
- * The SVG illustrations simulate close-up process documentation photos.
- * In production: replace with real documentary photography.
+ * Modified to support:
+ * — Balanced 4-column card layout to replace bulky vertical rows
+ * — Elegant hover highlights and technical stage detail footers
  */
 
 import { m, LazyMotion, domAnimation } from 'framer-motion'
 import { clsx } from 'clsx'
-import { staggerContainer, springs, Section, SectionInner, Eyebrow, SectionHeadline, GoldRule } from '@/design-system'
+import { springs, Section, SectionInner, Eyebrow, SectionHeadline } from '@/design-system'
 
 const PROCESS_STAGES = [
   {
@@ -54,48 +47,6 @@ const PROCESS_STAGES = [
   },
 ] as const
 
-export function ProcessSection() {
-  return (
-    <LazyMotion features={domAnimation}>
-      <Section id="process" className="bg-dp-bg">
-        <SectionInner>
-
-          {/* Header */}
-          <m.div
-            className="mb-16 md:mb-20"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={springs.responsive}
-          >
-            <Eyebrow className="mb-5">How we work</Eyebrow>
-            <SectionHeadline className="max-w-[540px]">
-              The craft behind<br />
-              <em>the result</em>
-            </SectionHeadline>
-            <p className="font-sans font-light text-base text-dp-text-muted max-w-[440px] mt-5 leading-[1.75]">
-              Every vehicle follows the same four-stage methodology. The order is not arbitrary —
-              it is the difference between a result that lasts and one that does not.
-            </p>
-          </m.div>
-
-          {/* Process stages */}
-          <div className="flex flex-col gap-px">
-            {PROCESS_STAGES.map((stage, index) => (
-              <ProcessStage key={stage.id} stage={stage} reversed={index % 2 === 1} />
-            ))}
-          </div>
-
-        </SectionInner>
-      </Section>
-    </LazyMotion>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// ProcessStage
-// ─────────────────────────────────────────────────────────────
-
 const STAGE_IMAGES: Record<string, string> = {
   decontaminate: '/parts_decon.png',
   correct: '/parts_correct.png',
@@ -103,82 +54,90 @@ const STAGE_IMAGES: Record<string, string> = {
   inspect: '/parts_inspect.png',
 }
 
-function ProcessStage({
-  stage, reversed,
-}: {
-  stage: typeof PROCESS_STAGES[number]
-  reversed: boolean
-}) {
+export function ProcessSection() {
   return (
-    <m.div
-      className={clsx(
-        'grid grid-cols-1 lg:grid-cols-2 border border-dp-border group',
-        'min-h-[280px]',
-      )}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={springs.responsive}
-    >
-      {/* Illustration close-up photo */}
-      <div
-        className={clsx(
-          'relative flex items-center justify-center min-h-[200px] lg:min-h-0 bg-dp-surface-deep',
-          'border-b lg:border-b-0',
-          reversed
-            ? 'lg:order-2 lg:border-l border-dp-border'
-            : 'lg:order-1 lg:border-r border-dp-border',
-          'overflow-hidden',
-        )}
-        aria-hidden="true"
-      >
-        <img
-          src={STAGE_IMAGES[stage.id]}
-          alt={stage.name}
-          className="w-full h-full object-cover transition-transform duration-[800ms] ease-dp-out group-hover:scale-105 opacity-80 group-hover:opacity-100 select-none pointer-events-none"
-        />
-        {/* Soft shadow gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#070707]/60 via-transparent to-transparent" />
-        
-        {/* Stage number watermark */}
-        <span
-          className="absolute bottom-4 right-5 font-display font-light text-[80px] leading-none tracking-[-0.04em] pointer-events-none select-none z-10 transition-colors duration-500 group-hover:text-dp-gold/10"
-          style={{ color: 'rgba(201,168,76,0.04)' }}
-        >
-          {stage.number}
-        </span>
-      </div>
+    <LazyMotion features={domAnimation}>
+      <Section id="process" className="bg-dp-bg border-t border-dp-border">
+        <SectionInner>
 
-      {/* Content */}
-      <div
-        className={clsx(
-          'flex flex-col justify-center p-8 md:p-10 lg:p-12 bg-dp-surface/20 backdrop-blur-sm',
-          reversed ? 'lg:order-1' : 'lg:order-2',
-        )}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-sans font-normal text-xs text-dp-gold">{stage.number}</span>
-          <div className="w-4 h-px bg-dp-border" aria-hidden="true" />
-          <span className="font-sans font-normal text-xs tracking-[0.12em] uppercase text-dp-text-muted">
-            {stage.name}
-          </span>
-        </div>
+          {/* Section Header */}
+          <m.div
+            className="mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={springs.responsive}
+          >
+            <Eyebrow className="mb-5">How we work</Eyebrow>
+            <SectionHeadline className="max-w-[540px]">
+              The craft behind <em>the result</em>
+            </SectionHeadline>
+            <p className="font-sans font-light text-sm text-dp-text-muted max-w-[480px] mt-4 leading-relaxed">
+              Every vehicle follows the same four-stage methodology. The order is not arbitrary —
+              it is the difference between a result that lasts and one that does not.
+            </p>
+          </m.div>
 
-        <h3 className="font-display font-light text-[clamp(24px,2.5vw,34px)] leading-snug tracking-[-0.01em] text-dp-text mb-4 transition-colors duration-300 group-hover:text-dp-gold">
-          {stage.headline}
-        </h3>
+          {/* Process Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {PROCESS_STAGES.map((stage, index) => (
+              <m.div
+                key={stage.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ ...springs.responsive, delay: index * 0.08 }}
+                className="h-full"
+              >
+                <div className="border border-dp-border bg-dp-surface/40 hover:border-dp-gold transition-colors duration-500 p-6 flex flex-col h-full group relative overflow-hidden">
+                  
+                  {/* Subtle top gold accent line on card hover */}
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-dp-gold scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-dp-out z-10" />
 
-        <p className="font-sans font-light text-sm leading-[1.78] text-dp-text-muted max-w-[400px] mb-6">
-          {stage.body}
-        </p>
+                  {/* Stage Image Header */}
+                  <div className="relative aspect-[16/10] overflow-hidden bg-dp-surface-deep mb-5 border border-dp-border/60 group-hover:border-dp-gold/30 transition-colors duration-500">
+                    <img
+                      src={STAGE_IMAGES[stage.id]}
+                      alt={stage.name}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-dp-out group-hover:scale-105 opacity-80 group-hover:opacity-100 select-none pointer-events-none"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-dp-surface/50 via-transparent to-transparent" />
+                  </div>
 
-        <div className="flex items-start gap-2">
-          <div className="w-3 h-px bg-dp-gold mt-[7px] flex-shrink-0" aria-hidden="true" />
-          <p className="font-sans font-light text-xs text-dp-text-muted leading-[1.7]">
-            {stage.detail}
-          </p>
-        </div>
-      </div>
-    </m.div>
+                  {/* Step metadata header */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="font-sans font-normal text-xs text-dp-gold">{stage.number}</span>
+                    <div className="w-3.5 h-px bg-dp-border" aria-hidden="true" />
+                    <span className="font-sans font-normal text-[9px] tracking-wider uppercase text-dp-text-muted">
+                      {stage.name}
+                    </span>
+                  </div>
+
+                  {/* Step Headline */}
+                  <h3 className="font-display font-light text-xl text-dp-text group-hover:text-dp-gold transition-colors duration-300 mb-3">
+                    {stage.headline}
+                  </h3>
+
+                  {/* Step Description */}
+                  <p className="font-sans font-light text-xs text-dp-text-muted leading-relaxed mb-5 flex-1">
+                    {stage.body}
+                  </p>
+
+                  {/* Step details footer */}
+                  <div className="border-t border-dp-border/40 pt-4 mt-auto flex items-start gap-2">
+                    <span className="block w-2.5 h-px bg-dp-gold mt-[7px] flex-shrink-0" aria-hidden="true" />
+                    <p className="font-sans font-light text-[10px] text-dp-text-muted leading-normal">
+                      {stage.detail}
+                    </p>
+                  </div>
+
+                </div>
+              </m.div>
+            ))}
+          </div>
+
+        </SectionInner>
+      </Section>
+    </LazyMotion>
   )
 }
