@@ -40,33 +40,6 @@ Detail Pals V2 is a premium, cinematic web showroom designed for a high-end auto
 
 ---
 
-## 🚀 Getting Started
-
-To run the showroom project locally:
-
-### 1. Clone & Install
-```bash
-git clone https://github.com/Saksham-kotia/detail_pals.git
-cd detail_pals
-npm install
-```
-
-### 2. Add Environment Keys
-Create a `.env.local` file in the root folder and add your Supabase credentials:
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_public_key
-```
-
-### 3. Build the Database
-1. Go to your **Supabase Dashboard** → **SQL Editor**.
-2. Copy the contents of the `supabase/migrations/001_initial_schema.sql` migration file, paste it in, and click **Run**.
-
-### 4. Run the Site
-```bash
-# Start local dev site (runs at http://localhost:5173/)
-npm run dev
-
 # Or build for production
 npm run build
 ```
