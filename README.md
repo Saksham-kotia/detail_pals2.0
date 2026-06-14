@@ -37,9 +37,3 @@ Detail Pals V2 is a premium, cinematic web showroom designed for a high-end auto
 * **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Framer Motion, and Lenis Smooth Scroll.
 * **State & Form Validation:** TanStack React Query, React Hook Form, and Zod.
 * **Backend:** Supabase (Database API, authentication, and security policies) and PostgreSQL (Enums, triggers, and availability tables).
-
----
-
-# Or build for production
-npm run build
-```
