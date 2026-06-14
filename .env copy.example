@@ -1,0 +1,37 @@
+# ── Detail Pals V2 — Environment Variables ──────────────────────────
+# Copy this file to .env.local and fill in your values.
+# cp .env.example .env.local
+#
+# NOTE: Vite exposes only VITE_* prefixed vars to the browser bundle.
+# SUPABASE_SERVICE_ROLE_KEY and RESEND_API_KEY are NOT prefixed —
+# they are only read by Vercel serverless functions (/api/*.ts).
+# NEVER add VITE_ prefix to those keys.
+
+# ── Supabase (required) ──────────────────────────────────────────────
+# Found in: Supabase Dashboard → Project Settings → API
+VITE_SUPABASE_URL=https://wqvlmqrcbuwdxiifkpky.supabase.co/rest/v1/
+VITE_SUPABASE_ANON_KEY=sb_publishable_ONw5ZBvND8chfyaosXA62A_72xS2Rzm
+
+# Service role key — SERVERLESS FUNCTIONS ONLY. Never prefix with VITE_.
+# Used by /api/customer-upsert.ts for privileged DB writes.
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# ── Email via Resend (optional) ──────────────────────────────────────
+# Get a key at https://resend.com — leave blank to skip emails.
+# Bookings still save to Supabase even without this.
+RESEND_API_KEY=
+
+# Verified sender address, e.g. "Detail Pals <bookings@yourdomain.com>"
+EMAIL_FROM=Detail Pals <onboarding@resend.dev>
+
+# Owner notification email (optional) — alerts on every new booking
+BOOKING_NOTIFY_EMAIL=
+
+# ── Site ─────────────────────────────────────────────────────────────
+# Your deployed URL (used in owner notification emails)
+VITE_SITE_URL=http://localhost:5173
+
+# ── Market pricing benchmarks (optional) ─────────────────────────────
+# JSON endpoint returning [{service, low, high}]. Falls back to
+# a curated industry-average dataset if unset or unreachable.
+PRICING_BENCHMARK_URL=

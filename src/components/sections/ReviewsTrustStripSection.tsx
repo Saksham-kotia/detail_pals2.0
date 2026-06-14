@@ -1,10 +1,10 @@
 import { m, LazyMotion, domAnimation } from 'framer-motion'
 import { SectionInner, springs } from '@/design-system'
+import { scrollToElement } from '@/lib/scroll'
 
 export function ReviewsTrustStripSection() {
   const handleScrollToReviews = () => {
-    // @ts-ignore
-    window.lenis?.scrollTo('#reviews', { offset: -80 })
+    scrollToElement('#reviews')
   }
 
   return (

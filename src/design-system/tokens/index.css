@@ -46,7 +46,7 @@
   --dp-tracking-nav:    0.08em;
 
   --dp-nav-h:           72px;
-  --dp-pad-y:           clamp(80px,12vw,160px);
+  --dp-pad-y:           clamp(60px,8vw,100px);
   --dp-pad-x:           clamp(20px,5vw,80px);
   --dp-max-w:           1280px;
   --dp-max-w-text:      640px;
@@ -102,4 +102,9 @@
   --dp-yellow-glow:     rgba(251, 191, 36, 0.12);
   --dp-yellow-glow-sm:  0 0 12px rgba(251, 191, 36, 0.25),0 0 24px rgba(251, 191, 36, 0.10);
   --dp-yellow-glow-md:  0 0 20px rgba(251, 191, 36, 0.35),0 0 40px rgba(251, 191, 36, 0.15);
+}
+
+/* Enforce perfect viewport alignment below fixed navbar for direct anchor routing */
+section[id], div[id] {
+  scroll-margin-top: 0;
 }

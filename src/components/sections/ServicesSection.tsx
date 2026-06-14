@@ -7,6 +7,7 @@ import {
   Section, SectionInner, Eyebrow, SectionHeadline,
   PrimaryButton, ArrowRight
 } from '@/design-system'
+import { scrollToElement } from '@/lib/scroll'
 import { TiltCard } from '@/components/ui/TiltCard'
 import { SERVICES, ADD_ONS } from '@/data'
 import type { ServiceTier } from '@/types'
@@ -300,8 +301,6 @@ function ServiceGridCard({ service, index, onSelect }: ServiceGridCardProps) {
             as="button"
             onClick={() => {
               onSelect()
-              // @ts-ignore
-              window.lenis?.scrollTo('#booking', { offset: -80 })
             }}
             className="text-[10px] py-2 px-4 flex items-center gap-1.5"
             data-cursor="cta"

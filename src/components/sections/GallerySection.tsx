@@ -9,6 +9,7 @@ import {
 } from '@/design-system'
 import { GALLERY_ITEMS } from '@/data'
 import type { GalleryTag, GalleryItem } from '@/types'
+import { useGalleryPairs } from '@/hooks/useBackend'
 
 const FILTERS: { id: GalleryTag; label: string }[] = [
   { id: 'all',       label: 'All Vehicles' },
@@ -19,13 +20,53 @@ const FILTERS: { id: GalleryTag; label: string }[] = [
   { id: 'correction',label: 'Correction' },
 ]
 
+function parseTagsFromCaption(caption: string, service: string): GalleryTag[] {
+  const tags: GalleryTag[] = ['all'];
+  const text = (caption + ' ' + service).toLowerCase();
+  
+  if (text.includes('sedan')) tags.push('sedan');
+  if (text.includes('suv') || text.includes('truck')) tags.push('suv');
+  if (text.includes('luxury') || text.includes('ghost') || text.includes('porsche') || text.includes('ferrari') || text.includes('rolls')) tags.push('luxury');
+  if (text.includes('ceramic') || text.includes('coat')) tags.push('ceramic');
+  if (text.includes('correction') || text.includes('polish') || text.includes('swirl') || text.includes('wax')) tags.push('correction');
+  
+  if (tags.length === 1) {
+    tags.push('correction'); // fallback default
+  }
+  
+  return tags;
+}
+
 export function GallerySection() {
   const [activeFilter, setActiveFilter] = useState<GalleryTag>('all')
-  const [selectedItem, setSelectedItem] = useState<typeof GALLERY_ITEMS[number] | null>(null)
+  const { pairs: dbPairs } = useGalleryPairs()
+  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null)
+
+  const dbItems: GalleryItem[] = (dbPairs || []).map(p => {
+    const service = p.service || 'Premium Detail';
+    const captionText = p.caption || p.after?.caption || p.before?.caption || '';
+    const vehicleName = captionText.split('—')[0]?.trim() || 'Vehicle Project';
+    const tags = parseTagsFromCaption(captionText, service);
+    
+    return {
+      id: p.pair_id,
+      beforeUrl: p.before?.url,
+      afterUrl: p.after?.url,
+      beforeAlt: captionText || `${vehicleName} before detailing`,
+      afterAlt: captionText || `${vehicleName} after detailing`,
+      service,
+      vehicle: vehicleName,
+      hours: 6,
+      tag: tags,
+      sliderInit: 50,
+    };
+  });
+
+  const allItems = [...dbItems, ...GALLERY_ITEMS];
 
   const filtered = activeFilter === 'all'
-    ? GALLERY_ITEMS
-    : GALLERY_ITEMS.filter(item => item.tag.includes(activeFilter))
+    ? allItems
+    : allItems.filter(item => item.tag.includes(activeFilter))
 
   return (
     <LazyMotion features={domAnimation}>
@@ -118,7 +159,7 @@ export function GallerySection() {
 
 // ─── Individual Gallery Item Card ───────────────────────────
 
-function GalleryCard({ item, isFirst }: { item: typeof GALLERY_ITEMS[number]; isFirst: boolean }) {
+function GalleryCard({ item, isFirst }: { item: GalleryItem; isFirst: boolean }) {
   const [sliderPos, setSliderPos] = useState(item.sliderInit ?? 50)
   const [isDragging, setIsDragging] = useState(false)
   const [hasAutoRevealed, setHasAutoRevealed] = useState(false)
@@ -200,7 +241,7 @@ function GalleryCard({ item, isFirst }: { item: typeof GALLERY_ITEMS[number]; is
       >
         {/* Before layer */}
         <div className="absolute inset-0">
-          <PaintSim state="before" vehicle={item.vehicle} />
+          <PaintSim state="before" vehicle={item.vehicle} imgUrl={item.beforeUrl} />
         </div>
 
         {/* After layer */}
@@ -208,7 +249,7 @@ function GalleryCard({ item, isFirst }: { item: typeof GALLERY_ITEMS[number]; is
           className="absolute inset-0 overflow-hidden"
           style={{ clipPath: `inset(0 0 0 ${sliderPos}%)` }}
         >
-          <PaintSim state="after" vehicle={item.vehicle} />
+          <PaintSim state="after" vehicle={item.vehicle} imgUrl={item.afterUrl} />
         </div>
 
         {/* Labels */}
@@ -259,9 +300,9 @@ const VEHICLE_IMAGES: Record<string, string> = {
   'Rolls-Royce Ghost': '/rolls_polished.png',
 }
 
-function PaintSim({ state, vehicle }: { state: 'before' | 'after'; vehicle: string }) {
+function PaintSim({ state, vehicle, imgUrl }: { state: 'before' | 'after'; vehicle: string; imgUrl?: string }) {
   const isBefore = state === 'before'
-  const imgSrc = VEHICLE_IMAGES[vehicle] || '/porsche_polished.png'
+  const imgSrc = imgUrl || VEHICLE_IMAGES[vehicle] || '/porsche_polished.png'
 
   return (
     <div className="w-full h-full relative overflow-hidden select-none pointer-events-none">
@@ -271,69 +312,71 @@ function PaintSim({ state, vehicle }: { state: 'before' | 'after'; vehicle: stri
             src={imgSrc}
             alt={`${vehicle} before treatment`}
             className="w-full h-full object-cover select-none pointer-events-none"
-            style={{ filter: 'grayscale(20%) brightness(44%) contrast(80%) sepia(26%) blur(0.5px)' }}
+            style={imgUrl ? undefined : { filter: 'grayscale(20%) brightness(44%) contrast(80%) sepia(26%) blur(0.5px)' }}
           />
           
           {/* Detailed dust, mud splatter, and mineral water spot overlay */}
-          <svg 
-            className="absolute inset-0 w-full h-full z-10 pointer-events-none" 
-            viewBox="0 0 640 400" 
-            fill="none"
-            preserveAspectRatio="xMidYMid slice"
-          >
-            {/* Mud splatters near bottom and side edges */}
-            <path
-              d="M-20 350 Q 80 320 140 370 T 320 380 T 480 360 T 660 380 L 660 420 L -20 420 Z"
-              fill="rgba(90, 70, 50, 0.55)"
-              filter="blur(1px)"
-            />
-            <path
-              d="M-10 370 Q 60 340 120 380 T 260 390 T 420 375 T 650 390 L 650 420 L -10 420 Z"
-              fill="rgba(70, 50, 35, 0.7)"
-            />
-            {/* Small random mud spots/flecks */}
-            {[
-              [80, 320, 4], [110, 340, 2.5], [150, 310, 3], [240, 335, 5],
-              [310, 320, 2], [380, 340, 6], [420, 320, 3.5], [490, 330, 4.5],
-              [520, 300, 3], [580, 330, 5.5], [25, 290, 4], [610, 280, 5]
-            ].map(([cx, cy, r], i) => (
-              <circle key={`mud-${i}`} cx={cx} cy={cy} r={r} fill="rgba(85, 65, 45, 0.65)" />
-            ))}
+          {!imgUrl && (
+            <svg 
+              className="absolute inset-0 w-full h-full z-10 pointer-events-none" 
+              viewBox="0 0 640 400" 
+              fill="none"
+              preserveAspectRatio="xMidYMid slice"
+            >
+              {/* Mud splatters near bottom and side edges */}
+              <path
+                d="M-20 350 Q 80 320 140 370 T 320 380 T 480 360 T 660 380 L 660 420 L -20 420 Z"
+                fill="rgba(90, 70, 50, 0.55)"
+                filter="blur(1px)"
+              />
+              <path
+                d="M-10 370 Q 60 340 120 380 T 260 390 T 420 375 T 650 390 L 650 420 L -10 420 Z"
+                fill="rgba(70, 50, 35, 0.7)"
+              />
+              {/* Small random mud spots/flecks */}
+              {[
+                [80, 320, 4], [110, 340, 2.5], [150, 310, 3], [240, 335, 5],
+                [310, 320, 2], [380, 340, 6], [420, 320, 3.5], [490, 330, 4.5],
+                [520, 300, 3], [580, 330, 5.5], [25, 290, 4], [610, 280, 5]
+              ].map(([cx, cy, r], i) => (
+                <circle key={`mud-${i}`} cx={cx} cy={cy} r={r} fill="rgba(85, 65, 45, 0.65)" />
+              ))}
 
-            {/* Mineral hard-water spots (scale deposits) scattered on hood/windows */}
-            {[
-              [220, 150, 8], [280, 110, 12], [340, 140, 10], [160, 210, 9],
-              [420, 180, 14], [460, 130, 11], [300, 220, 7], [180, 120, 13],
-              [520, 160, 10], [250, 80, 11], [380, 90, 12], [110, 170, 8],
-              [480, 240, 9], [320, 280, 10], [150, 260, 12]
-            ].map(([cx, cy, r], i) => (
-              <g key={`spot-${i}`} opacity="0.22">
-                <circle cx={cx} cy={cy} r={r} stroke="white" strokeWidth="0.8" fill="rgba(255,255,255,0.06)" />
-                <circle cx={cx - 1} cy={cy - 1} r={r - 3} stroke="white" strokeWidth="0.5" strokeDasharray="1,1" />
-              </g>
-            ))}
-
-            {/* Micro-scratch concentric swirls centered around light highlights */}
-            {[1, 2, 3].map((set) => {
-              const cx = 200 + (set * 80)
-              const cy = 110 + (set * 50)
-              return (
-                <g key={`swirl-${set}`} opacity={0.55 / set}>
-                  {[35, 65, 95, 130, 170].map((r) => (
-                    <circle
-                      key={r}
-                      cx={cx}
-                      cy={cy}
-                      r={r}
-                      stroke="rgba(255, 255, 255, 0.18)"
-                      strokeWidth="0.7"
-                      strokeDasharray="8, 3, 2, 3"
-                    />
-                  ))}
+              {/* Mineral hard-water spots (scale deposits) scattered on hood/windows */}
+              {[
+                [220, 150, 8], [280, 110, 12], [340, 140, 10], [160, 210, 9],
+                [420, 180, 14], [460, 130, 11], [300, 220, 7], [180, 120, 13],
+                [520, 160, 10], [250, 80, 11], [380, 90, 12], [110, 170, 8],
+                [480, 240, 9], [320, 280, 10], [150, 260, 12]
+              ].map(([cx, cy, r], i) => (
+                <g key={`spot-${i}`} opacity="0.22">
+                  <circle cx={cx} cy={cy} r={r} stroke="white" strokeWidth="0.8" fill="rgba(255,255,255,0.06)" />
+                  <circle cx={cx - 1} cy={cy - 1} r={r - 3} stroke="white" strokeWidth="0.5" strokeDasharray="1,1" />
                 </g>
-              )
-            })}
-          </svg>
+              ))}
+
+              {/* Micro-scratch concentric swirls centered around light highlights */}
+              {[1, 2, 3].map((set) => {
+                const cx = 200 + (set * 80)
+                const cy = 110 + (set * 50)
+                return (
+                  <g key={`swirl-${set}`} opacity={0.55 / set}>
+                    {[35, 65, 95, 130, 170].map((r) => (
+                      <circle
+                        key={r}
+                        cx={cx}
+                        cy={cy}
+                        r={r}
+                        stroke="rgba(255, 255, 255, 0.18)"
+                        strokeWidth="0.7"
+                        strokeDasharray="8, 3, 2, 3"
+                      />
+                    ))}
+                  </g>
+                )
+              })}
+            </svg>
+          )}
         </div>
       ) : (
         <div className="w-full h-full relative">
@@ -343,9 +386,11 @@ function PaintSim({ state, vehicle }: { state: 'before' | 'after'; vehicle: stri
             className="w-full h-full object-cover select-none pointer-events-none"
           />
           {/* Warm specular light reflection accent */}
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: 'radial-gradient(circle 160px at 70% 30%, rgba(201,168,76,0.2) 0%, transparent 80%)'
-          }} />
+          {!imgUrl && (
+            <div className="absolute inset-0 pointer-events-none" style={{
+              background: 'radial-gradient(circle 160px at 70% 30%, rgba(201,168,76,0.2) 0%, transparent 80%)'
+            }} />
+          )}
         </div>
       )}
 
@@ -440,7 +485,7 @@ function CaseStudyModal({ item, onClose }: { item: GalleryItem; onClose: () => v
         >
           {/* Before */}
           <div className="absolute inset-0">
-            <PaintSim state="before" vehicle={item.vehicle} />
+            <PaintSim state="before" vehicle={item.vehicle} imgUrl={item.beforeUrl} />
           </div>
 
           {/* After */}
@@ -448,7 +493,7 @@ function CaseStudyModal({ item, onClose }: { item: GalleryItem; onClose: () => v
             className="absolute inset-0 overflow-hidden"
             style={{ clipPath: `inset(0 0 0 ${sliderPos}%)` }}
           >
-            <PaintSim state="after" vehicle={item.vehicle} />
+            <PaintSim state="after" vehicle={item.vehicle} imgUrl={item.afterUrl} />
           </div>
 
           <span className="absolute bottom-4 left-4 font-sans text-[10px] tracking-widest uppercase text-dp-text-muted bg-dp-bg/80 px-3 py-1">

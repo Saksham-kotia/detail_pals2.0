@@ -5,6 +5,7 @@ import {
   Section, SectionInner, Eyebrow, SectionHeadline,
   PrimaryButton, ArrowRight, springs
 } from '@/design-system'
+import { scrollToElement } from '@/lib/scroll'
 import { SERVICES, ADD_ONS, VEHICLE_MULTIPLIERS, CONDITION_MULTIPLIERS } from '@/data'
 import type { ServiceTier, VehicleType, VehicleCondition } from '@/types'
 
@@ -461,8 +462,6 @@ export function QuoteSection({ preselectedTier, onContinueToBooking }: QuoteSect
                         condition,
                         addons: selectedAddOns,
                       })
-                      // @ts-ignore
-                      window.lenis?.scrollTo('#booking', { offset: -80 })
                     }
                   }}
                   className={clsx(

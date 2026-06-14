@@ -74,6 +74,8 @@ export interface GalleryItem {
   tag:       GalleryTag[]
   /** 0–100: initial slider position (default 50) */
   sliderInit?: number
+  beforeUrl?: string
+  afterUrl?:  string
 }
 
 // ─── Testimonials ────────────────────────────────────────────
