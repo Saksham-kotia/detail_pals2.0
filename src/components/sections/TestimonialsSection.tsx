@@ -6,6 +6,7 @@ import {
   Section, SectionInner, Eyebrow, SectionHeadline
 } from '@/design-system'
 import { TESTIMONIALS } from '@/data'
+import { useTestimonials } from '@/hooks/useBackend'
 
 const PLATFORMS = [
   { name: 'Google Reviews', rating: '4.9', count: '142', url: '#' },
@@ -14,6 +15,19 @@ const PLATFORMS = [
 ]
 
 export function TestimonialsSection() {
+  const { testimonials: dbTestimonials } = useTestimonials()
+  
+  const dbItems = (dbTestimonials || []).map(t => ({
+    id:      t.id,
+    quote:   t.text,
+    author:  t.author,
+    vehicle: t.vehicle,
+    rating:  t.rating,
+    date:    t.created_at ? new Date(t.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '',
+  }))
+
+  const testimonials = dbItems.length > 0 ? dbItems : TESTIMONIALS
+
   const [index, setIndex] = useState(0)
   const [direction, setDirection] = useState(0) // -1 for left, 1 for right
   const [isHovered, setIsHovered] = useState(false)
@@ -22,13 +36,13 @@ export function TestimonialsSection() {
   // Carousel cycle logic
   const handleNext = useCallback(() => {
     setDirection(1)
-    setIndex(prev => (prev + 1) % TESTIMONIALS.length)
-  }, [])
+    setIndex(prev => (prev + 1) % testimonials.length)
+  }, [testimonials])
 
   const handlePrev = useCallback(() => {
     setDirection(-1)
-    setIndex(prev => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)
-  }, [])
+    setIndex(prev => (prev - 1 + testimonials.length) % testimonials.length)
+  }, [testimonials])
 
   // Auto-play timer
   useEffect(() => {
@@ -41,6 +55,13 @@ export function TestimonialsSection() {
       if (autoPlayRef.current) clearInterval(autoPlayRef.current)
     }
   }, [isHovered, handleNext])
+
+  // Reset index if it becomes out of range of dynamic testimonials list
+  useEffect(() => {
+    if (index >= testimonials.length) {
+      setIndex(0)
+    }
+  }, [testimonials, index])
 
   // Slide animation variants
   const slideVariants = {
@@ -58,7 +79,7 @@ export function TestimonialsSection() {
     }),
   }
 
-  const currentTestimonial = TESTIMONIALS[index]
+  const currentTestimonial = testimonials[index]
 
   return (
     <LazyMotion features={domAnimation}>
@@ -242,7 +263,7 @@ export function TestimonialsSection() {
 
                   {/* Indicator dots */}
                   <div className="flex items-center gap-2">
-                    {TESTIMONIALS.map((t, idx) => (
+                    {testimonials.map((t, idx) => (
                       <button
                         key={t.id}
                         onClick={() => {

@@ -1,0 +1,19 @@
+{
+  "_comment": "These are the NEW dependencies to add to your existing package.json.",
+  "_instructions": "Run: npm install @supabase/supabase-js zod @vercel/node",
+
+  "dependencies_to_add": {
+    "@supabase/supabase-js": "^2.45.0",
+    "zod": "^3.23.0"
+  },
+
+  "devDependencies_to_add": {
+    "@vercel/node": "^3.2.0"
+  },
+
+  "_note_vercel_node": "@vercel/node provides types for Vercel serverless functions (VercelRequest, VercelResponse). It is a devDependency — not shipped to the browser.",
+
+  "_note_zod": "Zod is used for form validation in src/lib/validation.ts. It is a runtime dependency but tree-shaken heavily — only imported schemas are bundled.",
+
+  "_final_install_command": "npm install @supabase/supabase-js zod && npm install --save-dev @vercel/node"
+}

@@ -11,6 +11,7 @@
 import { m, LazyMotion, domAnimation } from 'framer-motion'
 import { clsx } from 'clsx'
 import { staggerContainer, fadeUp, GoldRule } from '@/design-system'
+import { scrollToElement } from '@/lib/scroll'
 
 const FOOTER_EXPLORE = [
   { label: 'Services',       href: '#services' },
@@ -18,6 +19,7 @@ const FOOTER_EXPLORE = [
   { label: 'Book Online',    href: '#booking'  },
   { label: 'Before & After', href: '#gallery'  },
   { label: 'Reviews',        href: '#reviews'  },
+  { label: 'Track Booking',  href: '#track-booking' },
 ]
 
 const YEAR = new Date().getFullYear()
@@ -25,8 +27,7 @@ const YEAR = new Date().getFullYear()
 export function Footer() {
   const handleScrollTo = (e: React.MouseEvent, href: string) => {
     e.preventDefault()
-    // @ts-ignore
-    window.lenis?.scrollTo(href, { offset: -80 })
+    scrollToElement(href)
   }
 
   return (
@@ -196,7 +197,7 @@ export function Footer() {
                 © {YEAR} Detail Pals. All rights reserved.
               </p>
               <a
-                href="#"
+                href="#/admin/login"
                 className="font-sans font-light text-xs text-dp-text-muted hover:text-dp-gold transition-colors duration-200 no-underline"
                 data-cursor="hover"
               >
@@ -213,8 +214,7 @@ export function Footer() {
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   const handleScroll = (e: React.MouseEvent) => {
     e.preventDefault()
-    // @ts-ignore
-    window.lenis?.scrollTo(href, { offset: -80 })
+    scrollToElement(href)
   }
 
   return (

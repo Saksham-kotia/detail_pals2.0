@@ -9,19 +9,21 @@ import {
 import { m, LazyMotion, domAnimation, AnimatePresence } from 'framer-motion'
 import { SERVICES, ADD_ONS, VEHICLE_MULTIPLIERS, CONDITION_MULTIPLIERS } from '@/data'
 import type { ServiceTier, VehicleType, VehicleCondition } from '@/types'
+import { createBooking } from '@/services/bookingService'
+import { supabase } from '@/lib/supabase'
+import { scrollToElement } from '@/lib/scroll'
 
 type Step = 1 | 2 | 3 | 4
 
 const SLOTS = ['8:00 AM', '9:30 AM', '11:00 AM', '1:00 PM', '2:30 PM', '4:00 PM']
-const BOOKED_DATES = new Set([
-  '2026-06-15',
-  '2026-06-18',
-  '2026-06-25',
-  '2026-07-04',
-  '2026-07-10',
-  '2026-07-22',
-  '2026-07-29',
-])
+const SLOT_MAP: Record<string, string> = {
+  '8:00 AM': '08:00',
+  '9:30 AM': '09:30',
+  '11:00 AM': '11:00',
+  '1:00 PM': '13:00',
+  '2:30 PM': '14:30',
+  '4:00 PM': '16:00',
+};
 
 interface BookingSectionProps {
   preselectedTier?: ServiceTier | null
@@ -46,9 +48,33 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
   const [priority, setPriority] = useState<'standard' | 'express' | 'vip'>('standard')
   const [selSlot, setSelSlot] = useState<string | null>(null)
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [vehicleString, setVehicleString] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [bookingRef, setBookingRef] = useState<string | null>(null)
+  const [liveStatus, setLiveStatus] = useState<string>('pending')
+  const [existingBookings, setExistingBookings] = useState<Array<{ booking_date: string; time_slot: string }>>([])
+
+  // Load active bookings on mount to dynamically block taken slots
+  useEffect(() => {
+    async function loadBookings() {
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('booking_date, time_slot')
+          .neq('status', 'cancelled');
+        if (!error && data) {
+          setExistingBookings(data);
+        }
+      } catch (err) {
+        console.error('[Detail Pals] Error loading bookings:', err);
+      }
+    }
+    loadBookings();
+  }, []);
 
   // Listen to preselected tier from service cards
   useEffect(() => {
@@ -71,6 +97,16 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
       setStep(2) // Jump to calendar schedule
     }
   }, [preloadedSetup])
+
+  // Scroll to booking section after state/layout updates to avoid race conditions
+  useEffect(() => {
+    if (preselectedTier || preloadedSetup) {
+      const timer = setTimeout(() => {
+        scrollToElement('#booking')
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [preselectedTier, preloadedSetup])
 
   // Auto-fill vehicle string based on selected type
   useEffect(() => {
@@ -110,11 +146,93 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
 
   const canProceed1 = selTiers.size > 0
   const canProceed2 = selDate !== null && !!selSlot
-  const canProceed3 = !!name && !!phone && !!vehicleString
+  const canProceed3 = !!name && !!phone && !!email && !!vehicleString
 
-  const handleSubmit = () => {
-    setSubmitted(true)
-    setStep(4)
+  // Live update subscription for the booked session
+  useEffect(() => {
+    if (step !== 4 || !bookingRef) return;
+
+    setLiveStatus('pending');
+
+    const channel = supabase
+      .channel(`live-booking-${bookingRef}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'bookings',
+          filter: `ref=eq.${bookingRef}`,
+        },
+        (payload) => {
+          console.log('[BookingSection] Live status change received:', payload);
+          if (payload.new && (payload.new as any).status) {
+            setLiveStatus((payload.new as any).status);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [step, bookingRef]);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    // Find the selected service
+    const selectedService = SERVICES.find(s => selTiers.has(s.id))
+    const selectedServicesList = selectedService ? [{
+      id: selectedService.id,
+      name: selectedService.name,
+      price: selectedService.price,
+    }] : []
+
+    // Find selected addons
+    const selectedAddons = ADD_ONS.filter(a => selAddOns.has(a.id)).map(a => ({
+      id: a.id,
+      name: a.name,
+      price: a.price,
+    }))
+
+    // Format date
+    let preferredDate = ''
+    if (selDate) {
+      const yyyy = selDate.getFullYear()
+      const mm = String(selDate.getMonth() + 1).padStart(2, '0')
+      const dd = String(selDate.getDate()).padStart(2, '0')
+      preferredDate = `${yyyy}-${mm}-${dd}`
+    }
+
+    const { booking, reference, error } = await createBooking({
+      customer_name: name,
+      customer_email: email,
+      customer_phone: phone,
+      vehicle_type: vehicleType || 'sedan',
+      vehicle_make: vehicleString,
+      vehicle_model: 'Model',
+      vehicle_year: '2026',
+      vehicle_color: '',
+      vehicle_condition: conditionVal || 'light',
+      condition_notes: `Priority: ${priority}`,
+      services: selectedServicesList,
+      addons: selectedAddons,
+      total_price: finalTotal,
+      preferred_date: preferredDate,
+      preferred_time: selSlot || '8:00 AM',
+    })
+
+    setIsSubmitting(false)
+    if (error) {
+      setSubmitError(error)
+    } else {
+      if (reference) setBookingRef(reference)
+      setSubmitted(true)
+      setStep(4)
+      scrollToElement('booking')
+    }
   }
 
   const toggleTier = (id: ServiceTier) => {
@@ -154,11 +272,22 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
     return date.getDay() === 0
   }
 
-  const isBooked = (date: Date) => {
+  const isDateFullyBooked = (date: Date) => {
     const yyyy = date.getFullYear()
     const mm = String(date.getMonth() + 1).padStart(2, '0')
     const dd = String(date.getDate()).padStart(2, '0')
-    return BOOKED_DATES.has(`${yyyy}-${mm}-${dd}`)
+    const dateStr = `${yyyy}-${mm}-${dd}`
+    const bookedForDate = existingBookings.filter(b => b.booking_date === dateStr)
+    return bookedForDate.length >= SLOTS.length
+  }
+
+  const isSlotBooked = (date: Date, slotLabel: string) => {
+    const yyyy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${yyyy}-${mm}-${dd}`
+    const time24 = SLOT_MAP[slotLabel]
+    return existingBookings.some(b => b.booking_date === dateStr && b.time_slot === time24)
   }
 
   const isSelected = (date: Date) => {
@@ -289,7 +418,12 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                       </div>
 
                       <m.div className="mt-8" animate={{ opacity: canProceed1 ? 1 : 0.4 }}>
-                        <PrimaryButton as="button" onClick={() => canProceed1 && setStep(2)} className="w-full justify-center" data-cursor="cta">
+                        <PrimaryButton as="button" onClick={() => {
+                          if (canProceed1) {
+                            setStep(2);
+                            scrollToElement('booking');
+                          }
+                        }} className="w-full justify-center" data-cursor="cta">
                           Continue — select date <ArrowRight />
                         </PrimaryButton>
                       </m.div>
@@ -352,12 +486,12 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                           ))}
 
                           {getMonthDays(2026, currentMonth).map(day => {
-                            const unavail = isPast(day) || isSunday(day) || isBooked(day)
+                            const unavail = isPast(day) || isSunday(day) || isDateFullyBooked(day)
                             const sel = isSelected(day)
                             
                             let statusText = ''
                             if (isSunday(day)) statusText = 'Closed'
-                            else if (isBooked(day)) statusText = 'Booked'
+                            else if (isDateFullyBooked(day)) statusText = 'Booked'
 
                             return (
                               <button
@@ -394,25 +528,42 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                             Available times for {selDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {SLOTS.map(slot => (
-                              <button key={slot} type="button" onClick={() => setSelSlot(slot)} data-cursor="hover"
-                                className={`border px-4 py-2.5 text-xs font-sans font-light transition-all duration-200 bg-transparent rounded-none ${
-                                  selSlot === slot
-                                    ? 'border-[var(--dp-gold)] text-dp-gold bg-dp-gold/5 shadow-gold-sm'
-                                    : 'border-[var(--dp-border)] text-dp-text-muted hover:border-[var(--dp-border-hover)] hover:text-dp-text'
-                                }`}
-                              >{slot}</button>
-                            ))}
+                            {SLOTS.map(slot => {
+                              const booked = isSlotBooked(selDate, slot)
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  disabled={booked}
+                                  onClick={() => setSelSlot(slot)}
+                                  data-cursor={booked ? 'default' : 'hover'}
+                                  className={`border px-4 py-2.5 text-xs font-sans font-light transition-all duration-200 bg-transparent rounded-none ${
+                                    booked
+                                      ? 'border-dp-border/20 opacity-25 cursor-not-allowed text-dp-text-subtle'
+                                      : selSlot === slot
+                                      ? 'border-[var(--dp-gold)] text-dp-gold bg-dp-gold/5 shadow-gold-sm'
+                                      : 'border-[var(--dp-border)] text-dp-text-muted hover:border-[var(--dp-border-hover)] hover:text-dp-text'
+                                  }`}
+                                >
+                                  {slot} {booked ? '(Booked)' : ''}
+                                </button>
+                              )
+                            })}
                           </div>
                         </m.div>
                       )}
 
                       <div className="flex gap-3">
-                        <button onClick={() => setStep(1)} type="button" className="border border-[var(--dp-border)] px-6 py-3 font-sans text-xs uppercase tracking-wider text-dp-text-muted hover:text-dp-text hover:border-[var(--dp-border-hover)] transition-colors bg-transparent cursor-pointer rounded-none" data-cursor="hover">
+                        <button onClick={() => { setStep(1); scrollToElement('booking'); }} type="button" className="border border-[var(--dp-border)] px-6 py-3 font-sans text-xs uppercase tracking-wider text-dp-text-muted hover:text-dp-text hover:border-[var(--dp-border-hover)] transition-colors bg-transparent cursor-pointer rounded-none" data-cursor="hover">
                           Back
                         </button>
                         <m.div className="flex-1" animate={{ opacity: canProceed2 ? 1 : 0.4 }}>
-                          <PrimaryButton as="button" onClick={() => canProceed2 && setStep(3)} className="w-full justify-center" data-cursor="cta">
+                          <PrimaryButton as="button" onClick={() => {
+                            if (canProceed2) {
+                              setStep(3);
+                              scrollToElement('booking');
+                            }
+                          }} className="w-full justify-center" data-cursor="cta">
                             Continue — your details <ArrowRight />
                           </PrimaryButton>
                         </m.div>
@@ -426,6 +577,7 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                       <div className="flex flex-col gap-4">
                         {[
                           { label: 'Full name', value: name, set: setName, placeholder: 'James Mitchell', type: 'text' },
+                          { label: 'Email address', value: email, set: setEmail, placeholder: 'james@example.com', type: 'email' },
                           { label: 'Phone number', value: phone, set: setPhone, placeholder: '+1 (555) 000-0000', type: 'tel' },
                           { label: 'Vehicle (make, model, year)', value: vehicleString, set: setVehicleString, placeholder: 'BMW M3 Competition, 2023', type: 'text' },
                         ].map(f => (
@@ -503,33 +655,95 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                         </div>
                       </div>
 
-                      <div className="flex gap-3 mt-8">
-                        <button onClick={() => setStep(2)} type="button" className="border border-[var(--dp-border)] px-6 py-3 font-sans text-xs uppercase tracking-wider text-dp-text-muted hover:text-dp-text hover:border-[var(--dp-border-hover)] transition-colors bg-transparent cursor-pointer rounded-none" data-cursor="hover">
+                      <div className="flex gap-3 mt-8 flex-col sm:flex-row">
+                        <button disabled={isSubmitting} onClick={() => { setStep(2); scrollToElement('booking'); }} type="button" className="border border-[var(--dp-border)] px-6 py-3 font-sans text-xs uppercase tracking-wider text-dp-text-muted hover:text-dp-text hover:border-[var(--dp-border-hover)] transition-colors bg-transparent cursor-pointer rounded-none disabled:opacity-50" data-cursor="hover">
                           Back
                         </button>
-                        <m.div className="flex-1" animate={{ opacity: canProceed3 ? 1 : 0.4 }}>
-                          <PrimaryButton as="button" onClick={() => canProceed3 && handleSubmit()} className="w-full justify-center" data-cursor="cta">
-                            Confirm booking <ArrowRight />
+                        <m.div className="flex-1" animate={{ opacity: canProceed3 && !isSubmitting ? 1 : 0.4 }}>
+                          <PrimaryButton as="button" disabled={!canProceed3 || isSubmitting} onClick={() => canProceed3 && !isSubmitting && handleSubmit()} className="w-full justify-center" data-cursor="cta">
+                            {isSubmitting ? 'Scheduling...' : 'Confirm booking'} <ArrowRight />
                           </PrimaryButton>
                         </m.div>
                       </div>
+                      {submitError && (
+                        <p className="text-red-400 font-sans font-light text-xs mt-3 text-center">{submitError}</p>
+                      )}
                     </m.div>
                   )}
 
                   {step === 4 && (
                     <m.div key="s4" initial={{ opacity:0,scale:0.96 }} animate={{ opacity:1,scale:1 }} transition={springs.gentle}
                       className="text-center py-12">
-                      <m.div className="w-16 h-16 border border-[var(--dp-gold)] rounded-none flex items-center justify-center mx-auto mb-8 shadow-gold-sm"
-                        animate={{ boxShadow: ['0 0 16px rgba(201,168,76,0.25)', '0 0 32px rgba(201,168,76,0.5)', '0 0 16px rgba(201,168,76,0.25)'] }}
+                      <m.div className={`w-16 h-16 border rounded-none flex items-center justify-center mx-auto mb-8 shadow-gold-sm ${
+                        liveStatus === 'confirmed' ? 'border-emerald-500 text-emerald-400 shadow-emerald-sm' :
+                        (liveStatus === 'in-progress' || liveStatus === 'in_progress') ? 'border-blue-500 text-blue-400 shadow-blue-sm' :
+                        liveStatus === 'completed' ? 'border-dp-gold text-dp-gold shadow-gold-sm' :
+                        liveStatus === 'cancelled' ? 'border-red-500 text-red-500 shadow-red-sm' :
+                        'border-[var(--dp-gold)] text-dp-gold'
+                      }`}
+                        animate={{ 
+                          boxShadow: liveStatus === 'confirmed' 
+                            ? ['0 0 16px rgba(16,185,129,0.25)', '0 0 32px rgba(16,185,129,0.5)', '0 0 16px rgba(16,185,129,0.25)']
+                            : liveStatus === 'cancelled'
+                            ? ['0 0 16px rgba(239,68,68,0.25)', '0 0 32px rgba(239,68,68,0.5)', '0 0 16px rgba(239,68,68,0.25)']
+                            : (liveStatus === 'in-progress' || liveStatus === 'in_progress')
+                            ? ['0 0 16px rgba(59,130,246,0.25)', '0 0 32px rgba(59,130,246,0.5)', '0 0 16px rgba(59,130,246,0.25)']
+                            : ['0 0 16px rgba(201,168,76,0.25)', '0 0 32px rgba(201,168,76,0.5)', '0 0 16px rgba(201,168,76,0.25)'],
+                          scale: [1, 1.05, 1]
+                        }}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
-                        <span className="text-dp-gold text-2xl">✓</span>
+                        <span className="text-2xl">
+                          {liveStatus === 'confirmed' ? '✓' :
+                           liveStatus === 'cancelled' ? '✕' :
+                           (liveStatus === 'in-progress' || liveStatus === 'in_progress') ? '⏳' :
+                           liveStatus === 'completed' ? '✨' : '✓'}
+                        </span>
                       </m.div>
-                      <h3 className="font-display font-light text-[32px] text-dp-text mb-3">Booking Confirmed</h3>
-                      <p className="font-sans font-light text-sm text-dp-text-muted mb-6 max-w-[440px] mx-auto leading-relaxed">
-                        Thank you, {name.split(' ')[0]}. We have scheduled your custom detail appointment.
-                        A confirmation text and calendar invite will be sent shortly.
-                      </p>
+
+                      {liveStatus === 'pending' && (
+                        <>
+                          <h3 className="font-display font-light text-[32px] text-dp-text mb-3">Booking Awaited</h3>
+                          <p className="font-sans font-light text-sm text-dp-text-muted mb-6 max-w-[440px] mx-auto leading-relaxed">
+                            Thank you, {name.split(' ')[0]}. We have received your booking request.
+                            Our team will review your slot and send a confirmation email once confirmed.
+                          </p>
+                        </>
+                      )}
+                      {liveStatus === 'confirmed' && (
+                        <>
+                          <h3 className="font-display font-light text-[32px] text-emerald-400 mb-3">Booking Confirmed!</h3>
+                          <p className="font-sans font-light text-sm text-dp-text-muted mb-6 max-w-[440px] mx-auto leading-relaxed">
+                            Fantastic news, {name.split(' ')[0]}! Your booking is officially <strong>Confirmed</strong>.
+                            We've sent a status confirmation email to your address.
+                          </p>
+                        </>
+                      )}
+                      {(liveStatus === 'in-progress' || liveStatus === 'in_progress') && (
+                        <>
+                          <h3 className="font-display font-light text-[32px] text-blue-400 mb-3">Detailing In Progress</h3>
+                          <p className="font-sans font-light text-sm text-dp-text-muted mb-6 max-w-[440px] mx-auto leading-relaxed">
+                            Our team is currently detailing your vehicle to showroom standards.
+                            Sit back and relax!
+                          </p>
+                        </>
+                      )}
+                      {liveStatus === 'completed' && (
+                        <>
+                          <h3 className="font-display font-light text-[32px] text-dp-gold mb-3">Detailing Completed</h3>
+                          <p className="font-sans font-light text-sm text-dp-text-muted mb-6 max-w-[440px] mx-auto leading-relaxed">
+                            Your vehicle detailing is complete! Your car is looking stunning and is ready for pickup.
+                          </p>
+                        </>
+                      )}
+                      {liveStatus === 'cancelled' && (
+                        <>
+                          <h3 className="font-display font-light text-[32px] text-red-500 mb-3">Booking Cancelled</h3>
+                          <p className="font-sans font-light text-sm text-dp-text-muted mb-6 max-w-[440px] mx-auto leading-relaxed">
+                            This booking has been cancelled. Please contact us if you need to reschedule or have questions.
+                          </p>
+                        </>
+                      )}
 
                       {/* Summary inside Confirmation */}
                       <div className="border border-[var(--dp-border-gold-dim)] px-8 py-6 mb-8 max-w-[480px] mx-auto bg-dp-surface/40 text-left space-y-4">
@@ -562,7 +776,7 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                         <div className="border-t border-dp-border pt-4 text-center">
                           <p className="font-sans font-normal text-[9px] tracking-widest uppercase text-dp-gold mb-1">Booking Reference</p>
                           <p className="font-sans font-light text-2xl text-dp-text tracking-wider">
-                            DP-{Math.random().toString(36).toUpperCase().slice(2,8)}
+                            {bookingRef || 'DP-XXXXXX'}
                           </p>
                         </div>
                       </div>

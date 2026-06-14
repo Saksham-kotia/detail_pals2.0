@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { clsx } from 'clsx'
 import { heroDelays, heroFadeUp, springs, MagneticCard } from '@/design-system'
 import { PrimaryButton, GhostButton, ArrowRight } from '@/design-system'
+import { scrollToElement } from '@/lib/scroll'
 import { useParticleCanvas } from '@/hooks'
 import {
   CarSilhouette,
@@ -279,8 +280,7 @@ export function HeroSection() {
             <PrimaryButton
               as="button"
               onClick={() => {
-                // @ts-ignore
-                window.lenis?.scrollTo('#quote', { offset: -80 })
+                scrollToElement('#quote')
               }}
               data-cursor="cta"
             >
@@ -290,8 +290,7 @@ export function HeroSection() {
             <GhostButton
               as="button"
               onClick={() => {
-                // @ts-ignore
-                window.lenis?.scrollTo('#gallery', { offset: -80 })
+                scrollToElement('#gallery')
               }}
               data-cursor="hover"
             >
@@ -318,8 +317,7 @@ export function HeroSection() {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           transition={{ delay: heroDelays.scroll, duration: 0.6 }}
           onClick={() => {
-            // @ts-ignore
-            window.lenis?.scrollTo('#services', { offset: -80 })
+            scrollToElement('#services')
           }}
           aria-label="Scroll to explore"
           data-cursor="hover"

@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react'
 import { m, AnimatePresence, useScroll, useTransform, LazyMotion, domAnimation } from 'framer-motion'
 import { clsx } from 'clsx'
 import { useScrolled } from '@/hooks'
+import { scrollToElement } from '@/lib/scroll'
 
 const NAV_LINKS = [
   { href: '#services', label: 'Services'  },
@@ -73,8 +74,7 @@ export function Navbar() {
   const handleScrollTo = (e: React.MouseEvent, href: string) => {
     e.preventDefault()
     setOpen(false)
-    // @ts-ignore
-    window.lenis?.scrollTo(href, { offset: -80 })
+    scrollToElement(href)
   }
 
   return (

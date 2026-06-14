@@ -3,17 +3,47 @@ import { AtmosphericBackground } from '@/components/ui/AtmosphericBackground'
 import { SplitTextReveal }       from '@/components/ui/SplitTextReveal'
 import { Eyebrow, springs, Section, SectionInner } from '@/design-system'
 import { m, AnimatePresence } from 'framer-motion'
+import { submitContact } from '@/services/bookingService'
 
 export function ContactSection() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [message, setMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (name && email && message) {
-      setSubmitted(true)
+    if (name && email && phone && message) {
+      setIsSubmitting(true)
+      setSubmitError(null)
+      try {
+        const { error } = await submitContact({ name, email, phone, message })
+        if (error) {
+          setSubmitError(error)
+        } else {
+          // Trigger contact email notification
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'contact_form',
+              name,
+              to: email,
+              phone,
+              message
+            })
+          }).catch(err => console.warn('[ContactSection] Email trigger failed:', err))
+
+          setSubmitted(true)
+        }
+      } catch (err) {
+        setSubmitError(String(err))
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -60,7 +90,7 @@ export function ContactSection() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                       <div>
                         <label className="block font-sans font-normal text-[10px] tracking-wider uppercase text-dp-text-muted mb-2">
                           Name
@@ -89,6 +119,20 @@ export function ContactSection() {
                           className="w-full border border-dp-border bg-dp-surface-deep/60 text-dp-text font-sans font-light text-sm px-4 py-3.5 focus:outline-none focus:border-dp-gold transition-colors placeholder:text-dp-text-subtle rounded-none"
                         />
                       </div>
+                      <div>
+                        <label className="block font-sans font-normal text-[10px] tracking-wider uppercase text-dp-text-muted mb-2">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="+1 (555) 000-0000"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          data-cursor="hide"
+                          className="w-full border border-dp-border bg-dp-surface-deep/60 text-dp-text font-sans font-light text-sm px-4 py-3.5 focus:outline-none focus:border-dp-gold transition-colors placeholder:text-dp-text-subtle rounded-none"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -106,12 +150,17 @@ export function ContactSection() {
                       />
                     </div>
 
+                    {submitError && (
+                      <p className="text-red-400 font-sans text-xs mt-1">{submitError}</p>
+                    )}
+
                     <button
                       type="submit"
+                      disabled={isSubmitting}
                       data-cursor="cta"
-                      className="w-full rounded-none bg-dp-gold hover:bg-dp-gold-light text-dp-bg font-sans font-semibold text-sm tracking-widest uppercase py-4 text-center select-none shadow-gold-sm hover:shadow-gold-md transition-all duration-300 active:scale-[0.985] cursor-pointer"
+                      className="w-full rounded-none bg-dp-gold hover:bg-dp-gold-light text-dp-bg font-sans font-semibold text-sm tracking-widest uppercase py-4 text-center select-none shadow-gold-sm hover:shadow-gold-md transition-all duration-300 active:scale-[0.985] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Send Message
+                      {isSubmitting ? 'Sending...' : 'Send Message'}
                     </button>
                   </m.form>
                 ) : (
@@ -134,6 +183,7 @@ export function ContactSection() {
                         setSubmitted(false)
                         setName('')
                         setEmail('')
+                        setPhone('')
                         setMessage('')
                       }}
                       className="mt-8 border border-dp-border px-6 py-3 font-sans text-[10px] uppercase tracking-wider text-dp-text-muted hover:text-dp-text hover:border-dp-border-hover transition-colors bg-transparent cursor-pointer rounded-none"

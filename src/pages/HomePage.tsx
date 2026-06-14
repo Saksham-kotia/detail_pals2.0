@@ -23,7 +23,9 @@ import { StatsSection }            from '@/components/sections/StatsSection'
 import { TestimonialsSection }     from '@/components/sections/TestimonialsSection'
 import { AboutSection }            from '@/components/sections/AboutSection'
 import { BookingSection }          from '@/components/sections/BookingSection'
+import { scrollToElement }         from '@/lib/scroll'
 import { ContactSection }          from '@/components/sections/ContactSection'
+import { TrackBookingSection }     from '@/components/sections/TrackBookingSection'
 import { Footer }                  from '@/components/layout/Footer'
 import { MobileStickyBar }         from '@/components/ui/MobileStickyBar'
 import { InfiniteMarquee }         from '@/components/ui/InfiniteMarquee'
@@ -74,8 +76,7 @@ export function HomePage() {
         const sectionId = path === 'reviews' ? 'reviews' : path
         const el = document.getElementById(sectionId)
         if (el) {
-          // @ts-ignore
-          window.lenis?.scrollTo(`#${sectionId}`, { offset: -80, immediate: true })
+          scrollToElement(`#${sectionId}`)
         }
       }, 500)
       return () => clearTimeout(timer)
@@ -159,6 +160,9 @@ export function HomePage() {
 
       {/* 9. Contact Details & Maps Form */}
       <ContactSection />
+
+      {/* 10. Track Your Booking Section */}
+      <TrackBookingSection />
 
       <Footer />
       <MobileStickyBar />
