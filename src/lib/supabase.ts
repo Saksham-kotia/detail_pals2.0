@@ -14,7 +14,7 @@ if (!supabaseUrl || !supabaseAnon) {
   );
 }
 
-export const supabase = createClient(supabaseUrl ?? '', supabaseAnon ?? '', {
+export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnon || 'placeholder', {
   auth: {
     // Persist session across page reloads
     persistSession: true,

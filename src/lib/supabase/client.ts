@@ -19,16 +19,20 @@ const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL  as string
 const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 if (!supabaseUrl || !supabaseAnon) {
-  throw new Error(
+  console.warn(
     'Missing Supabase env vars. Create .env.local with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY'
-  )
+  );
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnon, {
-  auth: {
-    autoRefreshToken:    true,
-    persistSession:      true,
-    detectSessionInUrl:  true,
-    storage:             sessionStorage,
-  },
-})
+export const supabase = createClient<Database>(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnon || 'placeholder',
+  {
+    auth: {
+      autoRefreshToken:    true,
+      persistSession:      true,
+      detectSessionInUrl:  true,
+      storage:             sessionStorage,
+    },
+  }
+);
