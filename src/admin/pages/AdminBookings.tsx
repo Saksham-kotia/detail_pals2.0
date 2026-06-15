@@ -1,6 +1,7 @@
 // ─── Detail Pals V2 — Admin Bookings ────────────────────────────────
 
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { Booking, BookingStatus } from '../../lib/types';
 import { useAdminBookings } from '../../hooks/useBackend';
 import { StatusBadge } from './AdminDashboard';
@@ -24,10 +25,19 @@ const NEXT_STATUS: Record<BookingStatus, BookingStatus[]> = {
 };
 
 export default function AdminBookings() {
-  const [search,     setSearch]     = useState('');
+  const location = useLocation();
+  const queryParam = new URLSearchParams(location.search).get('search') || '';
+
+  const [search,     setSearch]     = useState(queryParam);
   const [statusFilter, setStatus]   = useState<BookingStatus | 'all'>('all');
   const [selected,   setSelected]   = useState<Booking | null>(null);
   const [page,       setPage]       = useState(1);
+
+  React.useEffect(() => {
+    if (queryParam) {
+      setSearch(queryParam);
+    }
+  }, [queryParam]);
 
   const { bookings, count, loading, refresh, changeStatus } = useAdminBookings({
     search,

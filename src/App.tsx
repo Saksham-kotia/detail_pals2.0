@@ -48,6 +48,8 @@ const AdminDashboard = lazy(() => import('./admin/pages/AdminDashboard'))
 const AdminBookings = lazy(() => import('./admin/pages/AdminBookings'))
 const AdminHistory = lazy(() => import('./admin/pages/AdminHistory'))
 const AdminServices = lazy(() => import('./admin/pages/AdminServices'))
+const AdminContacts = lazy(() => import('./admin/pages/AdminContacts'))
+const AdminEmailLogs = lazy(() => import('./admin/pages/AdminEmailLogs'))
 const AdminOtherPages = {
   AdminCustomers: lazy(() => import('./admin/pages/AdminOtherPages').then(m => ({ default: m.AdminCustomers }))),
   AdminGallery: lazy(() => import('./admin/pages/AdminOtherPages').then(m => ({ default: m.AdminGallery }))),
@@ -105,6 +107,8 @@ function AnimatedRoutes() {
           <Route path="history" element={<AdminHistory />} />
           <Route path="services" element={<AdminServices />} />
           <Route path="customers" element={<AdminOtherPages.AdminCustomers />} />
+          <Route path="contacts" element={<AdminContacts />} />
+          <Route path="email-logs" element={<AdminEmailLogs />} />
           <Route path="gallery" element={<AdminOtherPages.AdminGallery />} />
           <Route path="testimonials" element={<AdminOtherPages.AdminTestimonials />} />
         </Route>

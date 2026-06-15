@@ -6,9 +6,9 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Service, Booking, GalleryPair, Testimonial, DashboardStats, CustomerWithStats, BookingStatus } from '../lib/types';
 import { getActiveServices, getMainServices, getAddonServices, getAllServices, updateService, toggleServiceActive } from '../services/servicesService';
 import { getBookings, updateBookingStatus, type BookingFilters } from '../services/bookingService';
-import { getGalleryPairs, getGalleryImages } from '../services/galleryService';
+import { getGalleryPairs, getGalleryImages, getPublicGallery } from '../services/galleryService';
 import { getVisibleTestimonials, getAllTestimonials } from '../services/adminService';
-import { getDashboardStats, getCustomersWithStats } from '../services/adminService';
+import { getDashboardStats, getCustomersWithStats, getContacts, getEmailLogs, type ContactMessage, type EmailLogEntry } from '../services/adminService';
 import type { GalleryImage } from '../lib/types';
 
 // ── useServices — public active services ────────────────────────────
@@ -77,6 +77,24 @@ export function useGalleryPairs() {
   }, []);
 
   return { pairs, loading, error };
+}
+
+export function usePublicGallery() {
+  const [pairs,   setPairs]   = useState<GalleryPair[]>([]);
+  const [singles, setSingles] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string | null>(null);
+
+  useEffect(() => {
+    getPublicGallery().then(({ pairs, singles, error }) => {
+      setPairs(pairs);
+      setSingles(singles);
+      setError(error);
+      setLoading(false);
+    });
+  }, []);
+
+  return { pairs, singles, loading, error };
 }
 
 // ── useTestimonials — public visible testimonials ─────────────────────
@@ -245,4 +263,46 @@ export function useAdminGallery() {
   useEffect(() => { refresh(); }, [refresh]);
 
   return { images, loading, error, refresh };
+}
+
+// ── useAdminContacts ──────────────────────────────────────────────────
+
+export function useAdminContacts() {
+  const [contacts, setContacts] = useState<ContactMessage[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
+
+  const refresh = useCallback(() => {
+    setLoading(true);
+    getContacts().then(({ contacts, error }) => {
+      setContacts(contacts);
+      setError(error);
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  return { contacts, loading, error, refresh };
+}
+
+// ── useAdminEmailLogs ─────────────────────────────────────────────────
+
+export function useAdminEmailLogs() {
+  const [logs,    setLogs]    = useState<EmailLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState<string | null>(null);
+
+  const refresh = useCallback(() => {
+    setLoading(true);
+    getEmailLogs().then(({ logs, error }) => {
+      setLogs(logs);
+      setError(error);
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  return { logs, loading, error, refresh };
 }

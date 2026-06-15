@@ -213,21 +213,19 @@ export async function createBooking(
     // Convert time slot to 24 hour
     const booking_time = convertTo24Hour(payload.preferred_time);
 
-    // Check if slot is already occupied (exclude cancelled status)
-    const { data: existingBooking, error: checkError } = await supabase
-      .from('bookings')
-      .select('id')
-      .eq('booking_date', payload.preferred_date)
-      .eq('time_slot', booking_time)
-      .neq('status', 'cancelled')
-      .maybeSingle();
+    // Check if slot is already occupied
+    const { data: isAvailable, error: checkError } = await supabase
+      .rpc('check_slot_available', {
+        check_date: payload.preferred_date,
+        check_slot: booking_time
+      });
 
     if (checkError) {
       console.error('[Detail Pals] Double booking check error:', checkError);
       return { booking: null, reference: null, error: checkError.message };
     }
 
-    if (existingBooking) {
+    if (isAvailable === false) {
       return { booking: null, reference: null, error: 'This time slot is already reserved. Please select another slot.' };
     }
 
@@ -450,6 +448,24 @@ export async function submitContact(payload: {
       source:  'contact-form',
       status:  'new',
     });
+
+  if (!error) {
+    try {
+      await fetch('/api/send-email', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:    'contact_form',
+          name:    payload.name,
+          to:      payload.email,
+          phone:   payload.phone,
+          message: payload.message,
+        }),
+      });
+    } catch (err) {
+      console.warn('[Detail Pals] Contact email trigger failed:', err);
+    }
+  }
 
   return { error: error?.message ?? null };
 }

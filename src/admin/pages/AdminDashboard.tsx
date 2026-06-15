@@ -1,6 +1,7 @@
 // ─── Detail Pals V2 — Admin Dashboard ───────────────────────────────
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAdminDashboard } from '../../hooks/useBackend';
 import { formatDate, formatCurrency } from '../components/adminUtils';
 import type { Booking } from '../../lib/types';
@@ -188,12 +189,12 @@ export default function AdminDashboard() {
                           {formatDate(b.preferred_date)} @ {b.preferred_time}
                         </td>
                         <td className="px-5 py-2.5 text-right">
-                          <a 
-                            href={`/admin/bookings?search=${b.reference}`} 
+                          <Link 
+                            to={`/admin/bookings?search=${b.reference}`} 
                             className="text-xs text-white/50 hover:text-white underline transition-colors"
                           >
                             Review
-                          </a>
+                          </Link>
                         </td>
                       </tr>
                     ))}

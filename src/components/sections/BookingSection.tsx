@@ -44,7 +44,20 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
   const [conditionVal, setConditionVal] = useState<VehicleCondition | null>(null)
 
   const [selDate, setSelDate] = useState<Date | null>(null)
-  const [currentMonth, setCurrentMonth] = useState<number>(5) // 5 = June, 6 = July 2026
+
+  // Dynamically calculate current and next month based on today's date
+  const todayRef = new Date()
+  const m1 = todayRef.getMonth()
+  const y1 = todayRef.getFullYear()
+  const nextMonthRef = new Date(y1, m1 + 1, 1)
+  const m2 = nextMonthRef.getMonth()
+  const y2 = nextMonthRef.getFullYear()
+
+  const m1Label = todayRef.toLocaleString('default', { month: 'long' })
+  const m2Label = nextMonthRef.toLocaleString('default', { month: 'long' })
+
+  const [selectedMonth, setSelectedMonth] = useState<number>(m1)
+  const [selectedYear, setSelectedYear] = useState<number>(y1)
   const [priority, setPriority] = useState<'standard' | 'express' | 'vip'>('standard')
   const [selSlot, setSelSlot] = useState<string | null>(null)
   const [name, setName] = useState('')
@@ -63,9 +76,7 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
     async function loadBookings() {
       try {
         const { data, error } = await supabase
-          .from('bookings')
-          .select('booking_date, time_slot')
-          .neq('status', 'cancelled');
+          .rpc('get_occupied_slots');
         if (!error && data) {
           setExistingBookings(data);
         }
@@ -264,7 +275,8 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
 
   const isPast = (date: Date) => {
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-    const today = new Date(2026, 5, 12) // June 12, 2026
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
     return d < today
   }
 
@@ -439,27 +451,27 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                         <div className="flex items-center gap-2 border border-dp-border p-1 bg-dp-surface/50">
                           <button
                             type="button"
-                            disabled={currentMonth === 5}
-                            onClick={() => { setCurrentMonth(5); setSelDate(null); setSelSlot(null); }}
+                            disabled={selectedMonth === m1}
+                            onClick={() => { setSelectedMonth(m1); setSelectedYear(y1); setSelDate(null); setSelSlot(null); }}
                             className={`px-3 py-1 text-xs font-sans tracking-widest uppercase transition-all duration-200 cursor-pointer ${
-                              currentMonth === 5
+                              selectedMonth === m1
                                 ? 'bg-dp-gold text-dp-bg font-normal'
                                 : 'text-dp-text-muted hover:text-dp-text disabled:opacity-35 disabled:cursor-not-allowed'
                             }`}
                           >
-                            June
+                            {m1Label}
                           </button>
                           <button
                             type="button"
-                            disabled={currentMonth === 6}
-                            onClick={() => { setCurrentMonth(6); setSelDate(null); setSelSlot(null); }}
+                            disabled={selectedMonth === m2}
+                            onClick={() => { setSelectedMonth(m2); setSelectedYear(y2); setSelDate(null); setSelSlot(null); }}
                             className={`px-3 py-1 text-xs font-sans tracking-widest uppercase transition-all duration-200 cursor-pointer ${
-                              currentMonth === 6
+                              selectedMonth === m2
                                 ? 'bg-dp-gold text-dp-bg font-normal'
                                 : 'text-dp-text-muted hover:text-dp-text disabled:opacity-35 disabled:cursor-not-allowed'
                             }`}
                           >
-                            July
+                            {m2Label}
                           </button>
                         </div>
                       </div>
@@ -467,7 +479,7 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
                       {/* Calendar Grid Container */}
                       <div className="border border-dp-border p-4 bg-dp-surface/20 mb-6">
                         <p className="text-center font-display font-light text-xl text-dp-text-warm mb-4 tracking-[0.06em]">
-                          {currentMonth === 5 ? 'June 2026' : 'July 2026'}
+                          {selectedMonth === m1 ? `${m1Label} ${y1}` : `${m2Label} ${y2}`}
                         </p>
 
                         <div className="grid grid-cols-7 gap-1 text-center mb-2">
@@ -480,12 +492,12 @@ export function BookingSection({ preselectedTier, preloadedSetup }: BookingSecti
 
                         <div className="grid grid-cols-7 gap-1.5">
                           {Array.from({
-                            length: (new Date(2026, currentMonth, 1).getDay() + 6) % 7
+                            length: (new Date(selectedYear, selectedMonth, 1).getDay() + 6) % 7
                           }).map((_, i) => (
                             <div key={`empty-${i}`} className="bg-transparent h-12" />
                           ))}
 
-                          {getMonthDays(2026, currentMonth).map(day => {
+                          {getMonthDays(selectedYear, selectedMonth).map(day => {
                             const unavail = isPast(day) || isSunday(day) || isDateFullyBooked(day)
                             const sel = isSelected(day)
                             
