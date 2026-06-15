@@ -29,17 +29,16 @@ export function TrackBookingSection() {
           if (payload.new && (payload.new as any).status) {
             // Re-fetch full booking relations to ensure correct services, customer mapping etc.
             const { data, error } = await supabase
-              .from('bookings')
-              .select('*, customer:customers(*), service:services(*)')
-              .eq('id', booking.id)
-              .single();
+              .rpc('get_booking_by_ref', { booking_ref: booking.reference });
 
-            if (!error && data) {
+            const singleData = data?.[0];
+
+            if (!error && singleData) {
               const { data: dbAddons } = await supabase.from('add_ons').select('*');
               // Helper to map DB booking structure to frontend Booking model
               const addonsList: any[] = [];
-              if (data.add_on_ids && dbAddons) {
-                for (const addOnId of data.add_on_ids) {
+              if (singleData.add_on_ids && dbAddons) {
+                for (const addOnId of singleData.add_on_ids) {
                   const matched = dbAddons.find(a => a.id === addOnId);
                   if (matched) {
                     addonsList.push({
@@ -51,9 +50,9 @@ export function TrackBookingSection() {
                 }
               }
 
-              let timeDisplay = data.time_slot;
-              if (data.time_slot && data.time_slot.includes(':')) {
-                const parts = data.time_slot.split(':');
+              let timeDisplay = singleData.time_slot;
+              if (singleData.time_slot && singleData.time_slot.includes(':')) {
+                const parts = singleData.time_slot.split(':');
                 let h = parseInt(parts[0], 10);
                 const mStr = parts[1];
                 const ampm = h >= 12 ? 'PM' : 'AM';
@@ -63,31 +62,31 @@ export function TrackBookingSection() {
               }
 
               setBooking({
-                id: data.id,
-                reference: data.ref,
-                customer_id: data.customer_id,
-                customer_name: data.customer_name ?? data.customer?.name ?? 'Unknown',
-                customer_email: data.customer_email ?? data.customer?.email ?? '',
-                customer_phone: data.customer_phone ?? data.customer?.phone ?? '',
-                vehicle_type: data.vehicle_type,
-                vehicle_make: data.vehicle_make,
-                vehicle_model: data.vehicle_model,
-                vehicle_year: String(data.vehicle_year ?? ''),
-                vehicle_color: data.vehicle_color || '',
-                vehicle_condition: data.condition,
-                condition_notes: data.notes ?? '',
-                services: data.service ? [{
-                  id: data.service.id,
-                  name: data.service.name,
-                  price: Number(data.service.base_price)
-                }] : [],
+                id: singleData.id,
+                reference: singleData.ref,
+                customer_id: singleData.customer_id,
+                customer_name: singleData.customer_name ?? 'Unknown',
+                customer_email: singleData.customer_email ?? '',
+                customer_phone: singleData.customer_phone ?? '',
+                vehicle_type: singleData.vehicle_type,
+                vehicle_make: singleData.vehicle_make,
+                vehicle_model: singleData.vehicle_model,
+                vehicle_year: String(singleData.vehicle_year ?? ''),
+                vehicle_color: singleData.vehicle_color || '',
+                vehicle_condition: singleData.condition,
+                condition_notes: singleData.notes ?? '',
+                services: [{
+                  id: singleData.service_id,
+                  name: singleData.service_name,
+                  price: Number(singleData.service_price)
+                }],
                 addons: addonsList,
-                total_price: Number(data.quoted_price),
-                preferred_date: data.booking_date,
+                total_price: Number(singleData.quoted_price),
+                preferred_date: singleData.booking_date,
                 preferred_time: timeDisplay,
-                status: data.status,
-                created_at: data.created_at,
-                updated_at: data.updated_at
+                status: singleData.status as any,
+                created_at: singleData.created_at,
+                updated_at: singleData.updated_at
               });
             }
           }
@@ -111,20 +110,19 @@ export function TrackBookingSection() {
     try {
       const cleanRef = refInput.trim().toUpperCase();
       const { data, error } = await supabase
-        .from('bookings')
-        .select('*, customer:customers(*), service:services(*)')
-        .eq('ref', cleanRef)
-        .maybeSingle();
+        .rpc('get_booking_by_ref', { booking_ref: cleanRef });
+
+      const singleData = data?.[0];
 
       if (error) {
         setSearchError(error.message);
-      } else if (!data) {
+      } else if (!singleData) {
         setSearchError('No booking found with this reference code.');
       } else {
         const { data: dbAddons } = await supabase.from('add_ons').select('*');
         const addonsList: any[] = [];
-        if (data.add_on_ids && dbAddons) {
-          for (const addOnId of data.add_on_ids) {
+        if (singleData.add_on_ids && dbAddons) {
+          for (const addOnId of singleData.add_on_ids) {
             const matched = dbAddons.find(a => a.id === addOnId);
             if (matched) {
               addonsList.push({
@@ -136,9 +134,9 @@ export function TrackBookingSection() {
           }
         }
 
-        let timeDisplay = data.time_slot;
-        if (data.time_slot && data.time_slot.includes(':')) {
-          const parts = data.time_slot.split(':');
+        let timeDisplay = singleData.time_slot;
+        if (singleData.time_slot && singleData.time_slot.includes(':')) {
+          const parts = singleData.time_slot.split(':');
           let h = parseInt(parts[0], 10);
           const mStr = parts[1];
           const ampm = h >= 12 ? 'PM' : 'AM';
@@ -148,31 +146,31 @@ export function TrackBookingSection() {
         }
 
         setBooking({
-          id: data.id,
-          reference: data.ref,
-          customer_id: data.customer_id,
-          customer_name: data.customer_name ?? data.customer?.name ?? 'Unknown',
-          customer_email: data.customer_email ?? data.customer?.email ?? '',
-          customer_phone: data.customer_phone ?? data.customer?.phone ?? '',
-          vehicle_type: data.vehicle_type,
-          vehicle_make: data.vehicle_make,
-          vehicle_model: data.vehicle_model,
-          vehicle_year: String(data.vehicle_year ?? ''),
-          vehicle_color: data.vehicle_color || '',
-          vehicle_condition: data.condition,
-          condition_notes: data.notes ?? '',
-          services: data.service ? [{
-            id: data.service.id,
-            name: data.service.name,
-            price: Number(data.service.base_price)
-          }] : [],
+          id: singleData.id,
+          reference: singleData.ref,
+          customer_id: singleData.customer_id,
+          customer_name: singleData.customer_name ?? 'Unknown',
+          customer_email: singleData.customer_email ?? '',
+          customer_phone: singleData.customer_phone ?? '',
+          vehicle_type: singleData.vehicle_type,
+          vehicle_make: singleData.vehicle_make,
+          vehicle_model: singleData.vehicle_model,
+          vehicle_year: String(singleData.vehicle_year ?? ''),
+          vehicle_color: singleData.vehicle_color || '',
+          vehicle_condition: singleData.condition,
+          condition_notes: singleData.notes ?? '',
+          services: [{
+            id: singleData.service_id,
+            name: singleData.service_name,
+            price: Number(singleData.service_price)
+          }],
           addons: addonsList,
-          total_price: Number(data.quoted_price),
-          preferred_date: data.booking_date,
+          total_price: Number(singleData.quoted_price),
+          preferred_date: singleData.booking_date,
           preferred_time: timeDisplay,
-          status: data.status,
-          created_at: data.created_at,
-          updated_at: data.updated_at
+          status: singleData.status as any,
+          created_at: singleData.created_at,
+          updated_at: singleData.updated_at
         });
       }
     } catch (err) {

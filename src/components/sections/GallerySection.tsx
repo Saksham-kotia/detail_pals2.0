@@ -9,7 +9,7 @@ import {
 } from '@/design-system'
 import { GALLERY_ITEMS } from '@/data'
 import type { GalleryTag, GalleryItem } from '@/types'
-import { useGalleryPairs } from '@/hooks/useBackend'
+import { usePublicGallery } from '@/hooks/useBackend'
 
 const FILTERS: { id: GalleryTag; label: string }[] = [
   { id: 'all',       label: 'All Vehicles' },
@@ -39,34 +39,55 @@ function parseTagsFromCaption(caption: string, service: string): GalleryTag[] {
 
 export function GallerySection() {
   const [activeFilter, setActiveFilter] = useState<GalleryTag>('all')
-  const { pairs: dbPairs } = useGalleryPairs()
+  const { pairs: dbPairs, singles: dbSingles } = usePublicGallery()
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null)
 
-  const dbItems: GalleryItem[] = (dbPairs || []).map(p => {
-    const service = p.service || 'Premium Detail';
-    const captionText = p.caption || p.after?.caption || p.before?.caption || '';
-    const vehicleName = captionText.split('—')[0]?.trim() || 'Vehicle Project';
-    const tags = parseTagsFromCaption(captionText, service);
-    
-    return {
-      id: p.pair_id,
-      beforeUrl: p.before?.url,
-      afterUrl: p.after?.url,
-      beforeAlt: captionText || `${vehicleName} before detailing`,
-      afterAlt: captionText || `${vehicleName} after detailing`,
-      service,
-      vehicle: vehicleName,
-      hours: 6,
-      tag: tags,
-      sliderInit: 50,
-    };
-  });
+  const dbItems: GalleryItem[] = [
+    ...(dbPairs || []).map(p => {
+      const service = p.service || 'Premium Detail';
+      const captionText = p.caption || p.after?.caption || p.before?.caption || '';
+      const vehicleName = captionText.split('—')[0]?.trim() || 'Vehicle Project';
+      const tags = parseTagsFromCaption(captionText, service);
+      
+      return {
+        id: p.pair_id,
+        beforeUrl: p.before?.url,
+        afterUrl: p.after?.url,
+        beforeAlt: captionText || `${vehicleName} before detailing`,
+        afterAlt: captionText || `${vehicleName} after detailing`,
+        service,
+        vehicle: vehicleName,
+        hours: 6,
+        tag: tags,
+        sliderInit: 50,
+      };
+    }),
+    ...(dbSingles || []).map(s => {
+      const service = s.service_type || 'Premium Detail';
+      const captionText = s.caption || '';
+      const vehicleName = captionText.split('—')[0]?.trim() || 'Vehicle Project';
+      const tags = parseTagsFromCaption(captionText, service);
+      
+      return {
+        id: s.id,
+        beforeUrl: s.tag === 'before' ? s.url : undefined,
+        afterUrl: s.tag === 'after' ? s.url : undefined,
+        beforeAlt: captionText || `${vehicleName} detailing`,
+        afterAlt: captionText || `${vehicleName} detailing`,
+        service,
+        vehicle: vehicleName,
+        hours: 3,
+        tag: tags,
+        sliderInit: 50,
+      };
+    })
+  ];
 
   const allItems = [...dbItems, ...GALLERY_ITEMS];
 
   const filtered = activeFilter === 'all'
-    ? allItems
-    : allItems.filter(item => item.tag.includes(activeFilter))
+    ? GALLERY_ITEMS
+    : GALLERY_ITEMS.filter(item => item.tag.includes(activeFilter))
 
   return (
     <LazyMotion features={domAnimation}>
@@ -140,6 +161,44 @@ export function GallerySection() {
               ))}
             </AnimatePresence>
           </m.div>
+
+          {/* Live Showroom / Admin Uploads Section */}
+          <div className="mt-24 pt-20 border-t border-dp-border/30">
+            <div className="mb-12 text-center">
+              <div className="justify-center flex">
+                <Eyebrow className="mb-5">Live Showroom</Eyebrow>
+              </div>
+              <h3 className="font-display font-light text-[28px] text-dp-text tracking-wider uppercase">
+                Customer Transformations
+              </h3>
+              <p className="font-sans font-light text-sm text-dp-text-muted mt-3 max-w-[480px] mx-auto leading-relaxed">
+                Real before/after results uploaded directly from our detailing bay.
+              </p>
+            </div>
+
+            {dbItems.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {dbItems.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => setSelectedItem(item)}
+                    className="cursor-pointer"
+                  >
+                    <GalleryCard item={item} isFirst={false} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 px-6 border border-dashed border-dp-border/30 rounded-none bg-dp-surface/20 max-w-[600px] mx-auto">
+                <p className="font-display font-light text-base text-dp-gold tracking-[0.2em] uppercase animate-pulse">
+                  More transformations soon
+                </p>
+                <p className="font-sans font-light text-xs text-dp-text-subtle mt-2.5 text-center leading-relaxed max-w-sm">
+                  Our technicians upload live project results here straight from the shop floor. Check back soon for new updates!
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Lightbox / Case Study Details Modal */}
           <AnimatePresence>
@@ -222,6 +281,36 @@ function GalleryCard({ item, isFirst }: { item: GalleryItem; isFirst: boolean })
   }
   const onPointerUp = () => setIsDragging(false)
 
+  const hasBefore = !!item.beforeUrl
+  const hasAfter = !!item.afterUrl
+  const isSingle = (hasBefore || hasAfter) && !(hasBefore && hasAfter)
+  const imgUrl = item.afterUrl || item.beforeUrl || ''
+
+  if (isSingle) {
+    return (
+      <div className="group flex flex-col border border-dp-border hover:border-dp-gold transition-all duration-300 bg-dp-bg cursor-pointer">
+        <div className="relative aspect-[16/10] overflow-hidden bg-dp-bg select-none">
+          <img
+            src={imgUrl}
+            alt={item.afterAlt || item.beforeAlt || 'Showroom Project'}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <span className="absolute top-3 left-3 font-sans font-normal text-[9px] tracking-widest uppercase text-dp-gold bg-dp-gold/15 border border-dp-gold/30 px-2 py-0.5 pointer-events-none">
+            {item.beforeUrl ? 'Before' : 'Showroom'}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-4 px-5 py-4 border-t border-dp-border bg-dp-surface-2">
+          <div className="flex items-center gap-3">
+            <span className="font-sans font-normal text-[9px] tracking-wider uppercase text-dp-gold border border-dp-border-gold px-2 py-0.5">
+              {item.service}
+            </span>
+            <span className="font-sans font-light text-xs text-dp-text">{item.vehicle}</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="group flex flex-col border border-dp-border hover:border-dp-gold transition-colors duration-500 bg-dp-bg cursor-pointer">
 
@@ -229,12 +318,13 @@ function GalleryCard({ item, isFirst }: { item: GalleryItem; isFirst: boolean })
       <div
         ref={containerRef}
         className={clsx(
-          'relative aspect-[16/10] overflow-hidden bg-dp-bg select-none',
+          'relative aspect-[16/10] overflow-hidden bg-dp-bg select-none touch-none',
           isDragging ? 'cursor-ew-resize' : 'cursor-col-resize',
         )}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={() => setIsDragging(false)}
         role="img"
         data-cursor="drag"
         aria-label={`Before and after comparison: ${item.beforeAlt} vs ${item.afterAlt}`}
@@ -312,6 +402,7 @@ function PaintSim({ state, vehicle, imgUrl }: { state: 'before' | 'after'; vehic
             src={imgSrc}
             alt={`${vehicle} before treatment`}
             className="w-full h-full object-cover select-none pointer-events-none"
+            draggable={false}
             style={imgUrl ? undefined : { filter: 'grayscale(20%) brightness(44%) contrast(80%) sepia(26%) blur(0.5px)' }}
           />
           
@@ -384,6 +475,7 @@ function PaintSim({ state, vehicle, imgUrl }: { state: 'before' | 'after'; vehic
             src={imgSrc}
             alt={`${vehicle} after treatment`}
             className="w-full h-full object-cover select-none pointer-events-none"
+            draggable={false}
           />
           {/* Warm specular light reflection accent */}
           {!imgUrl && (
@@ -476,12 +568,13 @@ function CaseStudyModal({ item, onClose }: { item: GalleryItem; onClose: () => v
         <div
           ref={sliderRef}
           className={clsx(
-            'relative aspect-[16/11] lg:aspect-auto lg:h-full overflow-hidden bg-dp-bg select-none border-b lg:border-b-0 lg:border-r border-dp-border',
+            'relative aspect-[16/11] lg:aspect-auto lg:h-full overflow-hidden bg-dp-bg select-none border-b lg:border-b-0 lg:border-r border-dp-border touch-none',
             isDragging ? 'cursor-ew-resize' : 'cursor-col-resize'
           )}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerCancel={() => setIsDragging(false)}
         >
           {/* Before */}
           <div className="absolute inset-0">

@@ -184,3 +184,76 @@ export async function toggleTestimonialVisibility(
     .eq('id', id);
   return { error: error?.message ?? null };
 }
+
+// ── Admin: Contacts Management ──────────────────────────────────────
+
+export interface ContactMessage {
+  id:          string;
+  name:        string;
+  email:       string;
+  phone:       string;
+  vehicle:     string;
+  message:     string;
+  source:      string;
+  status:      'new' | 'responded' | 'archived';
+  created_at:  string;
+}
+
+export async function getContacts(): Promise<{
+  contacts: ContactMessage[];
+  error:    string | null;
+}> {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  return {
+    contacts: (data || []) as ContactMessage[],
+    error:    error?.message ?? null,
+  };
+}
+
+export async function deleteContact(id: string): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('contacts')
+    .delete()
+    .eq('id', id);
+  return { error: error?.message ?? null };
+}
+
+// ── Admin: Email Logs Management ────────────────────────────────────
+
+export interface EmailLogEntry {
+  id:         string;
+  to_email:   string;
+  template:   string;
+  booking_id: string | null;
+  resend_id:  string | null;
+  status:     string;
+  error_msg:  string | null;
+  sent_at:    string;
+}
+
+export async function getEmailLogs(): Promise<{
+  logs:  EmailLogEntry[];
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from('email_log')
+    .select('*')
+    .order('sent_at', { ascending: false });
+
+  return {
+    logs:  (data || []) as EmailLogEntry[],
+    error: error?.message ?? null,
+  };
+}
+
+export async function clearEmailLogs(): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('email_log')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all
+  return { error: error?.message ?? null };
+}

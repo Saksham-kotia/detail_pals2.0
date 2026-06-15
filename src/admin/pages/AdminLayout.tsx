@@ -11,7 +11,9 @@ const NAV = [
   { to: '/admin/bookings',    label: 'Bookings'               },
   { to: '/admin/history',     label: 'History'                },
   { to: '/admin/customers',   label: 'Customers'              },
+  { to: '/admin/contacts',    label: 'Messages'               },
   { to: '/admin/services',    label: 'Services'               },
+  { to: '/admin/email-logs',  label: 'Email Logs'             },
   { to: '/admin/gallery',     label: 'Gallery'                },
   { to: '/admin/testimonials',label: 'Testimonials'           },
 ];

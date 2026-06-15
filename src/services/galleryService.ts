@@ -46,6 +46,60 @@ export async function getGalleryPairs(): Promise<{
   return { pairs, error: null };
 }
 
+// ── Public: fetch both paired and unpaired gallery items ─────────────
+
+export async function getPublicGallery(): Promise<{
+  pairs: GalleryPair[];
+  singles: GalleryImage[];
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from('gallery_images')
+    .select('*')
+    .order('uploaded_at', { ascending: false });
+
+  if (error) return { pairs: [], singles: [], error: error.message };
+
+  const images = data as GalleryImage[];
+
+  // Group by pair_id
+  const pairMap = new Map<string, { before: GalleryImage | null; after: GalleryImage | null }>();
+  const singles: GalleryImage[] = [];
+
+  for (const img of images) {
+    if (img.pair_id) {
+      if (!pairMap.has(img.pair_id)) {
+        pairMap.set(img.pair_id, { before: null, after: null });
+      }
+      const pair = pairMap.get(img.pair_id)!;
+      if (img.tag === 'before') pair.before = img;
+      if (img.tag === 'after')  pair.after  = img;
+    } else {
+      singles.push(img);
+    }
+  }
+
+  const pairs: GalleryPair[] = Array.from(pairMap.entries())
+    .filter(([, p]) => p.before && p.after)
+    .map(([pair_id, p]) => ({
+      pair_id,
+      before:  p.before!,
+      after:   p.after!,
+      caption: p.after?.caption ?? p.before?.caption ?? '',
+      service: p.after?.service_type ?? p.before?.service_type ?? '',
+    }));
+
+  // Add incomplete pairs (where only before or after is present) back to singles
+  for (const [, p] of pairMap.entries()) {
+    if (!p.before || !p.after) {
+      if (p.before) singles.push(p.before);
+      if (p.after) singles.push(p.after);
+    }
+  }
+
+  return { pairs, singles, error: null };
+}
+
 // ── Public: fetch all gallery images ─────────────────────────────────
 
 export async function getGalleryImages(): Promise<{
